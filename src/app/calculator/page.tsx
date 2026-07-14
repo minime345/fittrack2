@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -48,7 +48,7 @@ export default function Calculator() {
   const router = useRouter();
   const resultRef = useRef<HTMLDivElement>(null);
 
-  // Client-side effect за език
+  // Client-side effect Ð·Ð° ÐµÐ·Ð¸Ðº
   useEffect(() => {
     const saved = localStorage.getItem("lang");
     if (saved === "en" || saved === "bg") {
@@ -62,7 +62,7 @@ export default function Calculator() {
     localStorage.setItem("lang", newLang);
   };
 
-  // Преводи
+  // ÐŸÑ€ÐµÐ²Ð¾Ð´Ð¸
   const t = translations[lang] || translations.bg;
 
   const handleNumberChange =
@@ -100,7 +100,18 @@ export default function Calculator() {
     }
 
     const calories = bmr * activity;
-    setResult(Math.round(calories));
+    const roundedCalories = Math.round(calories);
+    setResult(roundedCalories);
+    localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify({
+      age: Number(age),
+      weight: Number(weight),
+      height: Number(height),
+      gender,
+      activity,
+      bodyFat: bodyFat === "" || bodyFat === null ? null : Number(bodyFat),
+      calories: roundedCalories,
+      updatedAt: Date.now(),
+    }));
 
     // Protein needs rise with training intensity/volume (ISSN guidance: ~1.2-2.4 g/kg).
     const proteinFactorsByActivity: Record<number, [number, number]> = {
@@ -129,16 +140,17 @@ export default function Calculator() {
           <Logo />
       
           <div className="flex items-center gap-6">
-            {/* Навигация за десктоп */}
-            <nav className="hidden md:flex gap-10">
+            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
+            <nav className="hidden md:flex gap-5 lg:gap-7">
               <NavLink href="/" label={t.nav.home} />
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </nav>
       
-            {/* Бутон за смяна на език – остава само един път */}
+            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº â€“ Ð¾ÑÑ‚Ð°Ð²Ð° ÑÐ°Ð¼Ð¾ ÐµÐ´Ð¸Ð½ Ð¿ÑŠÑ‚ */}
             <button
               onClick={toggleLang}
               aria-label="Switch language"
@@ -156,7 +168,7 @@ export default function Calculator() {
           </div>
         </div>
       
-        {/* Mobile menu – без бутон за език вътре */}
+        {/* Mobile menu â€“ Ð±ÐµÐ· Ð±ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÐµÐ·Ð¸Ðº Ð²ÑŠÑ‚Ñ€Ðµ */}
         {isOpen && (
           <div className="md:hidden bg-black/80 px-6 pb-4">
             <div className="flex flex-col gap-4">
@@ -164,6 +176,7 @@ export default function Calculator() {
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </div>
           </div>
@@ -201,9 +214,9 @@ export default function Calculator() {
   <label className="block mb-2 text-sm font-semibold text-gray-100">{t.calculator.activity}</label>
   <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
     {t.calculator.activityOptions.map((label, idx) => {
-      const values = [1.2, 1.375, 1.55, 1.725, 1.9]; // съответните коефициенти
-      const icons = ["🛋️", "🚶", "🏃", "💪", "🔥"];
-      const [title, description] = label.split(" — ");
+      const values = [1.2, 1.375, 1.55, 1.725, 1.9]; // ÑÑŠÐ¾Ñ‚Ð²ÐµÑ‚Ð½Ð¸Ñ‚Ðµ ÐºÐ¾ÐµÑ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚Ð¸
+      const icons = ["ðŸ›‹ï¸", "ðŸš¶", "ðŸƒ", "ðŸ’ª", "ðŸ”¥"];
+      const [title, description] = label.split(" â€” ");
       const isSelected = activity === values[idx];
       return (
         <button
@@ -230,7 +243,7 @@ export default function Calculator() {
             }`}
             aria-hidden="true"
           >
-            ✓
+            âœ“
           </span>
         </button>
       );
@@ -284,16 +297,21 @@ export default function Calculator() {
   <InfoCard title={t.calculator.quickCard[3]} value={result + 300} />
 </div>
 
-              <button
-                onClick={() => {
-                  router.push(
-                    `/personal-plan?calories=${result}&age=${age}&weight=${weight}&height=${height}&gender=${gender}&activity=${activity}&bodyFat=${bodyFat ?? ''}&proteinMin=${proteinRange?.[0]}&proteinMax=${proteinRange?.[1]}`
-                  );
-                }}
-                className="fit-primary-button mt-6 w-full sm:w-auto bg-green-500 hover:bg-green-600 text-black font-semibold py-3 px-6 rounded-lg transition"
-              >
-                {t.calculator.planButton}
-              </button>
+              <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                <button
+                  onClick={() => {
+                    router.push(
+                      `/personal-plan?calories=${result}&age=${age}&weight=${weight}&height=${height}&gender=${gender}&activity=${activity}&bodyFat=${bodyFat ?? ''}&proteinMin=${proteinRange?.[0]}&proteinMax=${proteinRange?.[1]}`
+                    );
+                  }}
+                  className="fit-primary-button w-full rounded-lg bg-green-500 px-6 py-3 font-semibold text-black transition hover:bg-green-600 sm:w-auto"
+                >
+                  {t.calculator.planButton}
+                </button>
+                <Link href="/workouts" className="fit-secondary-button w-full rounded-lg border border-green-500/30 px-6 py-3 text-center font-semibold text-green-200 sm:w-auto">
+                  {lang === "bg" ? "Препоръчана тренировка" : "Recommended workout"}
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -382,7 +400,7 @@ export default function Calculator() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
+          Â© {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 
@@ -433,3 +451,5 @@ function InfoCard({ title, value }: { title: string; value: number }) {
     </div>
   );
 }
+
+

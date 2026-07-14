@@ -1,4 +1,4 @@
-import { Menu } from "lucide-react";
+﻿import { Menu } from "lucide-react";
 import { Logo, NavLink } from "./NavBits";
 
 type HeaderNavProps = {
@@ -16,16 +16,17 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
         <Logo />
 
         <div className="flex items-center gap-6">
-          {/* Навигация за десктоп */}
-          <nav className="hidden md:flex gap-10">
+          {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
+          <nav className="hidden md:flex gap-5 lg:gap-7">
             <NavLink href="/" label={t.nav.home} />
             <NavLink href="/calculator" label={t.nav.calculator} />
             <NavLink href="/personal-plan" label={t.nav.personal} />
             <NavLink href="/plans" label={t.nav.plans} />
+            <NavLink href="/workouts" label={t.nav.workouts} />
             <NavLink href="/meals" label={t.nav.meals} />
           </nav>
 
-          {/* Бутон за смяна на език – остава само един път */}
+          {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº â€“ Ð¾ÑÑ‚Ð°Ð²Ð° ÑÐ°Ð¼Ð¾ ÐµÐ´Ð¸Ð½ Ð¿ÑŠÑ‚ */}
           <button
             onClick={toggleLang}
             aria-label="Switch language"
@@ -43,7 +44,7 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
         </div>
       </div>
 
-      {/* Mobile menu – без бутон за език вътре */}
+      {/* Mobile menu â€“ Ð±ÐµÐ· Ð±ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÐµÐ·Ð¸Ðº Ð²ÑŠÑ‚Ñ€Ðµ */}
       {isOpen && (
         <div className="md:hidden bg-black/80 px-6 pb-4">
           <div className="flex flex-col gap-4">
@@ -51,6 +52,7 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
             <NavLink href="/calculator" label={t.nav.calculator} />
             <NavLink href="/personal-plan" label={t.nav.personal} />
             <NavLink href="/plans" label={t.nav.plans} />
+            <NavLink href="/workouts" label={t.nav.workouts} />
             <NavLink href="/meals" label={t.nav.meals} />
           </div>
         </div>
@@ -58,3 +60,4 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
     </header>
   );
 }
+

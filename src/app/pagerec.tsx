@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Head from "next/head";
 import Image from "next/image";
@@ -29,7 +29,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-// Примерен рекламен компонент (mock ad) с фиксиран размер 300x250
+// ÐŸÑ€Ð¸Ð¼ÐµÑ€ÐµÐ½ Ñ€ÐµÐºÐ»Ð°Ð¼ÐµÐ½ ÐºÐ¾Ð¼Ð¿Ð¾Ð½ÐµÐ½Ñ‚ (mock ad) Ñ Ñ„Ð¸ÐºÑÐ¸Ñ€Ð°Ð½ Ñ€Ð°Ð·Ð¼ÐµÑ€ 300x250
 function SideMockAd({ text }: { text: string }) {
   return (
     <div className="hidden lg:flex flex-col items-center justify-center w-[200px] h-[500px] m-4 border-4 border-dashed border-green-400 rounded-lg bg-green-900 bg-opacity-30 text-center text-green-300 font-semibold">
@@ -45,21 +45,21 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>FitTrack – Калкулатори и режими</title>
-        <meta name="description" content="FitTrack – Твоят личен асистент за здравословен живот" />
+        <title>FitTrack â€“ ÐšÐ°Ð»ÐºÑƒÐ»Ð°Ñ‚Ð¾Ñ€Ð¸ Ð¸ Ñ€ÐµÐ¶Ð¸Ð¼Ð¸</title>
+        <meta name="description" content="FitTrack â€“ Ð¢Ð²Ð¾ÑÑ‚ Ð»Ð¸Ñ‡ÐµÐ½ Ð°ÑÐ¸ÑÑ‚ÐµÐ½Ñ‚ Ð·Ð° Ð·Ð´Ñ€Ð°Ð²Ð¾ÑÐ»Ð¾Ð²ÐµÐ½ Ð¶Ð¸Ð²Ð¾Ñ‚" />
       </Head>
 
       <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-        {/* Хедър */}
+        {/* Ð¥ÐµÐ´ÑŠÑ€ */}
         <header className="sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
           <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <Logo />
-            <nav className="hidden md:flex gap-10">
-              <NavLink href="/" label="Начало" />
-              <NavLink href="/calculator" label="Калкулатор" />
-              <NavLink href="/personal-plan" label="Персонални режими" />
-              <NavLink href="/plans" label="Режими" />
-              <NavLink href="/meals" label="Ястия" />
+            <nav className="hidden md:flex gap-5 lg:gap-7">
+              <NavLink href="/" label="ÐÐ°Ñ‡Ð°Ð»Ð¾" />
+              <NavLink href="/calculator" label="ÐšÐ°Ð»ÐºÑƒÐ»Ð°Ñ‚Ð¾Ñ€" />
+              <NavLink href="/personal-plan" label="ÐŸÐµÑ€ÑÐ¾Ð½Ð°Ð»Ð½Ð¸ Ñ€ÐµÐ¶Ð¸Ð¼Ð¸" />
+              <NavLink href="/plans" label="Ð ÐµÐ¶Ð¸Ð¼Ð¸" />
+              <NavLink href="/meals" label="Ð¯ÑÑ‚Ð¸Ñ" />
             </nav>
             <div className="md:hidden">
               <button onClick={() => setIsOpen(!isOpen)}>
@@ -71,22 +71,22 @@ export default function HomePage() {
           {isOpen && (
             <div className="md:hidden bg-black/80 px-6 pb-4">
               <div className="flex flex-col gap-4">
-                <NavLink href="/" label="Начало" />
-                <NavLink href="/calculator" label="Калкулатор" />
-                <NavLink href="/personal-plan" label="Персонални режими" />
-                <NavLink href="/plans" label="Режими" />
-                <NavLink href="/meals" label="Ястия" />
+                <NavLink href="/" label="ÐÐ°Ñ‡Ð°Ð»Ð¾" />
+                <NavLink href="/calculator" label="ÐšÐ°Ð»ÐºÑƒÐ»Ð°Ñ‚Ð¾Ñ€" />
+                <NavLink href="/personal-plan" label="ÐŸÐµÑ€ÑÐ¾Ð½Ð°Ð»Ð½Ð¸ Ñ€ÐµÐ¶Ð¸Ð¼Ð¸" />
+                <NavLink href="/plans" label="Ð ÐµÐ¶Ð¸Ð¼Ð¸" />
+                <NavLink href="/meals" label="Ð¯ÑÑ‚Ð¸Ñ" />
               </div>
             </div>
           )}
         </header>
 
-        {/* Основно съдържание с реклами отстрани */}
+        {/* ÐžÑÐ½Ð¾Ð²Ð½Ð¾ ÑÑŠÐ´ÑŠÑ€Ð¶Ð°Ð½Ð¸Ðµ Ñ Ñ€ÐµÐºÐ»Ð°Ð¼Ð¸ Ð¾Ñ‚ÑÑ‚Ñ€Ð°Ð½Ð¸ */}
         <section className="max-w-7xl mx-auto px-6 py-24 flex justify-center gap-6">
-          {/* Лява странична реклама */}
-          <SideMockAd text="Реклама ляво 300x250" />
+          {/* Ð›ÑÐ²Ð° ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ‡Ð½Ð° Ñ€ÐµÐºÐ»Ð°Ð¼Ð° */}
+          <SideMockAd text="Ð ÐµÐºÐ»Ð°Ð¼Ð° Ð»ÑÐ²Ð¾ 300x250" />
 
-          {/* Централна колона с основното */}
+          {/* Ð¦ÐµÐ½Ñ‚Ñ€Ð°Ð»Ð½Ð° ÐºÐ¾Ð»Ð¾Ð½Ð° Ñ Ð¾ÑÐ½Ð¾Ð²Ð½Ð¾Ñ‚Ð¾ */}
           <div className="max-w-3xl flex-grow text-center">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
@@ -94,7 +94,7 @@ export default function HomePage() {
               transition={{ duration: 0.6 }}
               className="text-4xl md:text-6xl font-extrabold text-green-400 mb-6"
             >
-              Добре дошъл във FitTrack
+              Ð”Ð¾Ð±Ñ€Ðµ Ð´Ð¾ÑˆÑŠÐ» Ð²ÑŠÐ² FitTrack
             </motion.h1>
 
             <motion.p
@@ -103,7 +103,7 @@ export default function HomePage() {
               transition={{ delay: 0.2, duration: 0.6 }}
               className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto mb-10"
             >
-              Твоят личен асистент за калории, хранителни режими и здравословен начин на живот.
+              Ð¢Ð²Ð¾ÑÑ‚ Ð»Ð¸Ñ‡ÐµÐ½ Ð°ÑÐ¸ÑÑ‚ÐµÐ½Ñ‚ Ð·Ð° ÐºÐ°Ð»Ð¾Ñ€Ð¸Ð¸, Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÐµÐ»Ð½Ð¸ Ñ€ÐµÐ¶Ð¸Ð¼Ð¸ Ð¸ Ð·Ð´Ñ€Ð°Ð²Ð¾ÑÐ»Ð¾Ð²ÐµÐ½ Ð½Ð°Ñ‡Ð¸Ð½ Ð½Ð° Ð¶Ð¸Ð²Ð¾Ñ‚.
             </motion.p>
 
             <motion.div
@@ -116,13 +116,13 @@ export default function HomePage() {
                 href="/calculator"
                 className="bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-3 rounded-lg shadow-lg transition"
               >
-                Изчисли калории
+                Ð˜Ð·Ñ‡Ð¸ÑÐ»Ð¸ ÐºÐ°Ð»Ð¾Ñ€Ð¸Ð¸
               </Link>
               <Link
                 href="/personal-plan"
                 className="border border-green-500 text-green-400 hover:bg-green-500 hover:text-black font-semibold px-6 py-3 rounded-lg shadow-lg transition"
               >
-                Персонален режим
+                ÐŸÐµÑ€ÑÐ¾Ð½Ð°Ð»ÐµÐ½ Ñ€ÐµÐ¶Ð¸Ð¼
               </Link>
             </motion.div>
 
@@ -141,15 +141,15 @@ export default function HomePage() {
             </motion.div>
           </div>
 
-          {/* Дясна странична реклама */}
-          <SideMockAd text="Реклама дясно 300x250" />
+          {/* Ð”ÑÑÐ½Ð° ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ‡Ð½Ð° Ñ€ÐµÐºÐ»Ð°Ð¼Ð° */}
+          <SideMockAd text="Ð ÐµÐºÐ»Ð°Ð¼Ð° Ð´ÑÑÐ½Ð¾ 300x250" />
         </section>
 
         {/* Footer */}
         <footer className="bg-gray-900 text-gray-300 py-12 mt-12 border-t border-white/10">
           <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Контакти</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">ÐšÐ¾Ð½Ñ‚Ð°ÐºÑ‚Ð¸</h3>
               <p>
                 Email:{" "}
                 <a href="mailto:info@fittrack.bg" className="text-green-400 hover:underline">
@@ -157,40 +157,40 @@ export default function HomePage() {
                 </a>
               </p>
               <p>
-                Телефон:{" "}
+                Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½:{" "}
                 <a href="tel:+359888123456" className="text-green-400 hover:underline">
                   +359 888 123 456
                 </a>
               </p>
-              <p>Адрес: София, България</p>
+              <p>ÐÐ´Ñ€ÐµÑ: Ð¡Ð¾Ñ„Ð¸Ñ, Ð‘ÑŠÐ»Ð³Ð°Ñ€Ð¸Ñ</p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Бързи връзки</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Ð‘ÑŠÑ€Ð·Ð¸ Ð²Ñ€ÑŠÐ·ÐºÐ¸</h3>
               <ul className="space-y-2">
                 <li>
                   <Link href="/calculator" className="hover:text-green-400">
-                    Калкулатор
+                    ÐšÐ°Ð»ÐºÑƒÐ»Ð°Ñ‚Ð¾Ñ€
                   </Link>
                 </li>
                 <li>
                   <Link href="/plans" className="hover:text-green-400">
-                    Режими
+                    Ð ÐµÐ¶Ð¸Ð¼Ð¸
                   </Link>
                 </li>
                 <li>
                   <Link href="/meals" className="hover:text-green-400">
-                    Ястия
+                    Ð¯ÑÑ‚Ð¸Ñ
                   </Link>
                 </li>
                 <li>
                   <Link href="/personal-plan" className="hover:text-green-400">
-                    Персонални режими
+                    ÐŸÐµÑ€ÑÐ¾Ð½Ð°Ð»Ð½Ð¸ Ñ€ÐµÐ¶Ð¸Ð¼Ð¸
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Последвай ни</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">ÐŸÐ¾ÑÐ»ÐµÐ´Ð²Ð°Ð¹ Ð½Ð¸</h3>
               <ul className="space-y-2">
                 <li>
                   <a href="https://www.facebook.com/" className="hover:text-green-400">
@@ -211,10 +211,11 @@ export default function HomePage() {
             </div>
           </div>
           <div className="text-center mt-10 text-sm text-gray-500">
-            © {currentYear} FitTrack. Всички права запазени.
+            Â© {currentYear} FitTrack. Ð’ÑÐ¸Ñ‡ÐºÐ¸ Ð¿Ñ€Ð°Ð²Ð° Ð·Ð°Ð¿Ð°Ð·ÐµÐ½Ð¸.
           </div>
         </footer>
       </main>
     </>
   );
 }
+

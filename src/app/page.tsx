@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -41,7 +41,7 @@ export default function Home() {
   const { lang, setLang } = useLang();
   const currentYear = new Date().getFullYear();
 
-  // Задаваме fallback, за да не счупи рендера
+  // Ð—Ð°Ð´Ð°Ð²Ð°Ð¼Ðµ fallback, Ð·Ð° Ð´Ð° Ð½Ðµ ÑÑ‡ÑƒÐ¿Ð¸ Ñ€ÐµÐ½Ð´ÐµÑ€Ð°
   const t = translations[lang] || translations.bg;
 
   useEffect(() => {
@@ -64,16 +64,17 @@ export default function Home() {
           <Logo />
 
           <div className="flex items-center gap-6">
-            {/* Навигация за десктоп */}
-            <nav className="hidden md:flex gap-10">
+            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
+            <nav className="hidden md:flex gap-5 lg:gap-7">
               <NavLink href="/" label={t.nav.home} />
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </nav>
 
-            {/* Бутон за смяна на език – остава само един път */}
+            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº â€“ Ð¾ÑÑ‚Ð°Ð²Ð° ÑÐ°Ð¼Ð¾ ÐµÐ´Ð¸Ð½ Ð¿ÑŠÑ‚ */}
             <button
               onClick={toggleLang}
               aria-label="Switch language"
@@ -91,7 +92,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Mobile menu – без бутон за език вътре */}
+        {/* Mobile menu â€“ Ð±ÐµÐ· Ð±ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÐµÐ·Ð¸Ðº Ð²ÑŠÑ‚Ñ€Ðµ */}
         {isOpen && (
           <div className="md:hidden bg-black/80 px-6 pb-4">
             <div className="flex flex-col gap-4">
@@ -99,6 +100,7 @@ export default function Home() {
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </div>
           </div>
@@ -246,7 +248,7 @@ export default function Home() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
+          Â© {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 
@@ -255,3 +257,5 @@ export default function Home() {
     </main>
   );
 }
+
+

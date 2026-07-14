@@ -6,6 +6,7 @@ export const translations = {
       personal: "Персонални режими",
       plans: "Режими",
       meals: "Ястия",
+      workouts: "Тренировки",
     },
     footer: {
       contacts: "Контакти",
@@ -85,6 +86,7 @@ export const translations = {
       personal: "Personal Plans",
       plans: "Plans",
       meals: "Meals",
+      workouts: "Workouts",
     },
     footer: {
       contacts: "Contacts",

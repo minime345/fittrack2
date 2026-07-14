@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -61,11 +61,12 @@ export function MealDetailPage({ slug }: { slug: string }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <Logo />
           <div className="flex items-center gap-6">
-            <nav className="hidden md:flex gap-10">
+            <nav className="hidden md:flex gap-5 lg:gap-7">
               <NavLink href="/" label={t.nav.home} />
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </nav>
             <button onClick={toggleLang} aria-label="Switch language" className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium">
@@ -83,6 +84,7 @@ export function MealDetailPage({ slug }: { slug: string }) {
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </div>
           </div>
@@ -95,8 +97,8 @@ export function MealDetailPage({ slug }: { slug: string }) {
           onClick={() => router.back()}
           className="mb-6 inline-flex items-center gap-2 rounded-lg border border-green-500/50 bg-gray-900/60 px-4 py-2 text-sm font-medium text-green-300 transition hover:bg-green-500 hover:text-black"
         >
-          <span aria-hidden="true">←</span>
-          {lang === "bg" ? "Обратно към личния план" : "Back to personal plan"}
+          <span aria-hidden="true">â†</span>
+          {lang === "bg" ? "ÐžÐ±Ñ€Ð°Ñ‚Ð½Ð¾ ÐºÑŠÐ¼ Ð»Ð¸Ñ‡Ð½Ð¸Ñ Ð¿Ð»Ð°Ð½" : "Back to personal plan"}
         </button>
         <div className="flex items-center gap-4 mb-8">
           <span className="text-6xl">{detail?.icon || baseMeal.icon}</span>
@@ -120,7 +122,7 @@ export function MealDetailPage({ slug }: { slug: string }) {
                   step="50"
                   value={meal.weight}
                   onChange={(event) => changeWeight(Number(event.target.value))}
-                  aria-label={lang === "bg" ? "Тегло на порцията" : "Portion weight"}
+                  aria-label={lang === "bg" ? "Ð¢ÐµÐ³Ð»Ð¾ Ð½Ð° Ð¿Ð¾Ñ€Ñ†Ð¸ÑÑ‚Ð°" : "Portion weight"}
                   className="w-28 rounded-lg border border-green-500/50 bg-gray-900 px-2 py-1 text-center text-2xl font-bold text-green-400 outline-none focus:border-green-400"
                 />
                 <span className="text-xl font-bold text-green-400">g</span>
@@ -157,3 +159,5 @@ export function MealDetailPage({ slug }: { slug: string }) {
     </main>
   );
 }
+
+

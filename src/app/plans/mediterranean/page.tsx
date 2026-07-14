@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -51,11 +51,12 @@ export default function MediterraneanPage() {
           <Logo />
 
           <div className="flex items-center gap-6">
-            <nav className="hidden md:flex gap-10">
+            <nav className="hidden md:flex gap-5 lg:gap-7">
               <NavLink href="/" label={t.nav.home} />
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </nav>
 
@@ -86,6 +87,7 @@ export default function MediterraneanPage() {
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </div>
           </div>
@@ -177,10 +179,12 @@ export default function MediterraneanPage() {
             </ul>
           </div>
           <div className="text-center md:text-right">
-            <p>© {currentYear} FitTrack. {t.footer.rights}</p>
+            <p>Â© {currentYear} FitTrack. {t.footer.rights}</p>
           </div>
         </div>
       </footer>
     </main>
   );
 }
+
+

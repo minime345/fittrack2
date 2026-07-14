@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -54,7 +54,7 @@ export default function MealsPage() {
     localStorage.setItem("lang", newLang);
   };
 
-  // Преводи
+  // ÐŸÑ€ÐµÐ²Ð¾Ð´Ð¸
   const t = translations[lang] || translations.bg;
 
   const filteredMeals =
@@ -70,22 +70,23 @@ export default function MealsPage() {
 
   return (
     <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      {/* Навигация */}
+      {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ */}
       <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <Logo />
 
           <div className="flex items-center gap-6">
-            {/* Навигация за десктоп */}
-            <nav className="hidden md:flex gap-10">
+            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
+            <nav className="hidden md:flex gap-5 lg:gap-7">
               <NavLink href="/" label={t.nav.home} />
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </nav>
 
-            {/* Бутон за смяна на език */}
+            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº */}
             <button
               onClick={toggleLang}
               aria-label="Switch language"
@@ -111,13 +112,14 @@ export default function MealsPage() {
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </div>
           </div>
         )}
       </header>
 
-      {/* Секция: Ястия */}
+      {/* Ð¡ÐµÐºÑ†Ð¸Ñ: Ð¯ÑÑ‚Ð¸Ñ */}
       <section className="max-w-7xl mx-auto px-6 py-12">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
@@ -128,7 +130,7 @@ export default function MealsPage() {
           {t.meals.hed}
         </motion.h1>
 
-        {/* Категории */}
+        {/* ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ */}
         <div className="flex flex-wrap justify-center gap-4 mb-10">
           {categories.map(cat => (
             <button
@@ -149,7 +151,7 @@ export default function MealsPage() {
           ))}
         </div>
 
-        {/* Карти с ястия */}
+        {/* ÐšÐ°Ñ€Ñ‚Ð¸ Ñ ÑÑÑ‚Ð¸Ñ */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {visibleMeals.map((meal, i) => (
             <motion.div
@@ -192,7 +194,7 @@ export default function MealsPage() {
                   </div>
                   <div className="text-sm text-white mt-2 whitespace-pre-wrap">
                     <span className="font-semibold text-green-400">
-                      {lang === "bg" ? "Рецепта:" : "Recipe:"}
+                      {lang === "bg" ? "Ð ÐµÑ†ÐµÐ¿Ñ‚Ð°:" : "Recipe:"}
                     </span>{" "}
                     {meal.recipe[lang]}
                   </div>
@@ -202,7 +204,7 @@ export default function MealsPage() {
           ))}
         </div>
 
-        {/* Бутон "Зареди още" */}
+        {/* Ð‘ÑƒÑ‚Ð¾Ð½ "Ð—Ð°Ñ€ÐµÐ´Ð¸ Ð¾Ñ‰Ðµ" */}
         {visibleMealsCount < filteredMeals.length && (
           <div className="flex justify-center mt-12">
             <button
@@ -299,7 +301,7 @@ export default function MealsPage() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
+          Â© {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 
@@ -308,3 +310,5 @@ export default function MealsPage() {
     </main>
   );
 }
+
+

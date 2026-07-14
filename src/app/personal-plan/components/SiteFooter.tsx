@@ -40,6 +40,11 @@ export function SiteFooter({ t, currentYear }: SiteFooterProps) {
               </Link>
             </li>
             <li>
+              <Link href="/workouts" className="hover:text-green-400">
+                {t.nav.workouts}
+              </Link>
+            </li>
+            <li>
               <Link href="/meals" className="hover:text-green-400">
                 {t.nav.meals}
               </Link>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -38,7 +38,7 @@ export default function Plans() {
   const { lang, setLang } = useLang();
   const currentYear = new Date().getFullYear();
 
-  // fallback за езика
+  // fallback Ð·Ð° ÐµÐ·Ð¸ÐºÐ°
   const t = translations[lang] || translations.bg;
 
   useEffect(() => {
@@ -62,16 +62,17 @@ export default function Plans() {
           <Logo />
       
           <div className="flex items-center gap-6">
-            {/* Навигация за десктоп */}
-            <nav className="hidden md:flex gap-10">
+            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
+            <nav className="hidden md:flex gap-5 lg:gap-7">
               <NavLink href="/" label={t.nav.home} />
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </nav>
       
-            {/* Бутон за смяна на език */}
+            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº */}
             <button
               onClick={toggleLang}
               aria-label="Switch language"
@@ -97,13 +98,14 @@ export default function Plans() {
               <NavLink href="/calculator" label={t.nav.calculator} />
               <NavLink href="/personal-plan" label={t.nav.personal} />
               <NavLink href="/plans" label={t.nav.plans} />
+              <NavLink href="/workouts" label={t.nav.workouts} />
               <NavLink href="/meals" label={t.nav.meals} />
             </div>
           </div>
         )}
       </header>
       
-      {/* Заглавие */}
+      {/* Ð—Ð°Ð³Ð»Ð°Ð²Ð¸Ðµ */}
       <section className="max-w-6xl mx-auto px-6 py-20 text-center">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
@@ -123,7 +125,7 @@ export default function Plans() {
         </motion.p>
       </section>
 
-      {/* Карти */}
+      {/* ÐšÐ°Ñ€Ñ‚Ð¸ */}
       <section className="max-w-6xl mx-auto px-6 pb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
         {t.plansPage.diets.map((plan, index) => (
           <motion.div
@@ -260,7 +262,7 @@ export default function Plans() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
+          Â© {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 
@@ -269,3 +271,5 @@ export default function Plans() {
     </main>
   );
 }
+
+
