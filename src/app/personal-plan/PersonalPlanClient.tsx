@@ -9,12 +9,12 @@ import { translations, type Lang } from "@/lib/translations-plans";
 import { useLang } from "@/context/LangContext";
 import { Analytics } from "@vercel/analytics/react";
 
-import type { Diet, ExcludedSource, Goal, PlanMealType, DayPlan, Meal } from "./types";
+import type { Diet, ExcludedSource, Goal, PlanMealType, DayPlan, Meal, PlanStyle } from "./types";
 import {
   getTargetCalories,
   filterByMeatType,
   calculateTotal,
-  generateDayPlan,
+  generateWeekPlan,
   generateShoppingList,
   scaleMeal,
 } from "./planLogic";
@@ -53,6 +53,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
 
   const [goal, setGoal] = useState<Goal>("maintain");
   const [diet, setDiet] = useState<Diet>("all");
+  const [planStyle, setPlanStyle] = useState<PlanStyle>("diverse");
   const [excludedSources, setExcludedSources] = useState<ExcludedSource[]>([]);
   const [swapHistory, setSwapHistory] = useState<Record<string, string[]>>({});
   const [showExcludedOptions, setShowExcludedOptions] = useState(false);
@@ -71,6 +72,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
     goal: Goal;
     diet: Diet;
     excludedSources: ExcludedSource[];
+    planStyle: PlanStyle;
   } | null>(null);
 
   useEffect(() => {
@@ -82,6 +84,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
           goal: Goal;
           diet: Diet;
           excludedSources: ExcludedSource[];
+          planStyle?: PlanStyle;
           weeklyPlan: DayPlan[];
           swapHistory?: Record<string, string[]>;
         };
@@ -89,6 +92,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
           if (!searchParams.has("calories")) setBaseCalories(saved.baseCalories);
           setGoal(saved.goal);
           setDiet(saved.diet);
+          setPlanStyle(saved.planStyle || "diverse");
           setExcludedSources(saved.excludedSources || []);
           setWeeklyPlan(saved.weeklyPlan);
           setSwapHistory(saved.swapHistory || {});
@@ -97,6 +101,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
             goal: saved.goal,
             diet: saved.diet,
             excludedSources: saved.excludedSources || [],
+            planStyle: saved.planStyle || "diverse",
           });
         }
       }
@@ -171,21 +176,26 @@ const regeneratePlan = () => {
   filtered = filterMeatFromPool(filtered);
 
   // Генериране на 7-дневен план
-  const weekPlan = Array.from({ length: 7 }, () =>
-    generateDayPlan(filtered, dailyCalories)
-  );
+  const weekPlan = generateWeekPlan(filtered, dailyCalories, planStyle);
 
   setWeeklyPlan(weekPlan);
   setSwapHistory({});
-  setGeneratedSettings({ baseCalories, goal, diet, excludedSources: [...excludedSources] });
+  setGeneratedSettings({ baseCalories, goal, diet, excludedSources: [...excludedSources], planStyle });
 };
 
 useEffect(() => {
-  if (!planStorageReady || weeklyPlan.length === 7) return;
-  regeneratePlan();
-  // Initial generation only. Later preference changes wait for the button.
+  if (!planStorageReady) return;
+  const settingsChanged = !generatedSettings ||
+    generatedSettings.baseCalories !== baseCalories ||
+    generatedSettings.goal !== goal ||
+    generatedSettings.diet !== diet ||
+    generatedSettings.planStyle !== planStyle ||
+    JSON.stringify([...generatedSettings.excludedSources].sort()) !== JSON.stringify([...excludedSources].sort());
+
+  if (weeklyPlan.length !== 7 || settingsChanged) regeneratePlan();
+  // Regenerate only when inputs change; the saved plan is reused after navigation.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [planStorageReady]);
+}, [planStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings]);
 
 useEffect(() => {
   if (!planStorageReady || weeklyPlan.length !== 7 || !generatedSettings) return;
@@ -195,13 +205,6 @@ useEffect(() => {
     swapHistory,
   }));
 }, [weeklyPlan, swapHistory, generatedSettings, planStorageReady]);
-
-const planNeedsRegeneration = Boolean(generatedSettings) && (
-  generatedSettings!.baseCalories !== baseCalories ||
-  generatedSettings!.goal !== goal ||
-  generatedSettings!.diet !== diet ||
-  JSON.stringify([...generatedSettings!.excludedSources].sort()) !== JSON.stringify([...excludedSources].sort())
-);
 
 const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) => {
   const target = generatedSettings
@@ -266,6 +269,14 @@ const handleDownloadPDF = () => {
   });
 };
 
+const toggleShoppingList = () => {
+  const nextValue = !showShoppingList;
+  setShowShoppingList(nextValue);
+  if (nextValue) {
+    window.setTimeout(() => document.getElementById("shopping-list")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
+};
+
 const openMeal = (dayIndex: number, mealType: PlanMealType, meal: Meal) => {
   setSelectedMeal(meal);
   setSelectedLocation({ dayIndex, mealType });
@@ -296,35 +307,35 @@ const changeMealWeight = (weight: number) => {
   <PlanOverview
     t={t} lang={lang} baseCalories={baseCalories} proteinMin={proteinMin} proteinMax={proteinMax}
     goal={goal} setGoal={setGoal} goalLabels={goalLabels} diet={diet} setDiet={setDiet}
+    planStyle={planStyle} setPlanStyle={setPlanStyle}
     dietLabels={dietLabels} dietIcons={dietIcons} excludedSources={excludedSources}
     setExcludedSources={setExcludedSources} sourceOptions={sourceOptions}
     showExcludedOptions={showExcludedOptions} setShowExcludedOptions={setShowExcludedOptions}
   />
   <PlanGuide lang={lang} hasCalculatedTarget={searchParams.has("calories")} />
-  <div className={`mb-6 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
-    planNeedsRegeneration
-      ? "border-amber-400/30 bg-amber-400/[0.06]"
-      : "border-green-500/15 bg-green-500/[0.04]"
-  }`}>
+  <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-green-500/15 bg-green-500/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p className={`text-sm font-semibold ${planNeedsRegeneration ? "text-amber-200" : "text-green-300"}`}>
-        {planNeedsRegeneration
-          ? (lang === "bg" ? "Има нови настройки, които още не са приложени" : "You have new settings that have not been applied")
-          : (lang === "bg" ? "Този план е запазен в браузъра" : "This plan is saved in your browser")}
+      <p className="text-sm font-semibold text-green-300">
+        {lang === "bg" ? "Този план е запазен в браузъра" : "This plan is saved in your browser"}
       </p>
       <p className="mt-1 text-xs leading-relaxed text-gray-400">
-        {planNeedsRegeneration
-          ? (lang === "bg" ? "Сегашната седмица остава непроменена, докато не натиснеш бутона." : "Your current week stays unchanged until you select the button.")
-          : (lang === "bg" ? "Смяната на ястия и порции също се запазва автоматично." : "Meal replacements and portion changes are saved automatically too.")}
+        {lang === "bg"
+          ? "Обновява се при нови калории, цел, режим, стил или изключени храни. Навигацията в сайта не го променя."
+          : "It updates for new calories, goal, diet, style, or exclusions. Navigating the site does not change it."}
       </p>
     </div>
-    <button
-      type="button"
-      onClick={regeneratePlan}
-      className="fit-primary-button shrink-0 rounded-xl bg-green-500 px-5 py-2.5 text-sm font-bold text-black hover:bg-green-400"
-    >
-      ↻ {lang === "bg" ? "Генерирай нов план" : "Regenerate plan"}
-    </button>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-300">
+        ✓ {lang === "bg" ? "Автоматично запазване" : "Autosaved"}
+      </span>
+      <button
+        type="button"
+        onClick={regeneratePlan}
+        className="fit-secondary-button rounded-xl border border-green-500/30 px-3 py-2 text-xs font-semibold text-green-200"
+      >
+        ↻ {lang === "bg" ? "Обнови целия план" : "Refresh entire plan"}
+      </button>
+    </div>
   </div>
   <div className="hidden">
   <motion.h1
@@ -457,13 +468,19 @@ const changeMealWeight = (weight: number) => {
   className="fit-primary-button w-full rounded-xl bg-green-600 px-6 py-3 text-left text-white shadow transition-colors hover:bg-green-700" >
      <span className="block font-semibold">{t.Main.downloadPdf}</span>
      <span className="mt-0.5 block text-xs font-normal text-green-100/75">{lang === "bg" ? "Запази текущия план и рецептите" : "Save the current plan and recipes"}</span>
-     </button> <button onClick={() => setShowShoppingList(!showShoppingList)}
+     </button> <button onClick={toggleShoppingList}
       className="fit-secondary-button w-full rounded-xl border border-green-500/30 px-6 py-3 text-left text-white transition-colors" >
          <span className="block font-semibold">{t.Main.shoppingListBtn}</span>
          <span className="mt-0.5 block text-xs font-normal text-gray-400">{lang === "bg" ? "Количества за всички избрани порции" : "Quantities for all selected portions"}</span>
          </button> 
          </footer>
-         <ShoppingListSection t={t} show={showShoppingList} items={generateShoppingList(weeklyPlan, lang)} />
+         <ShoppingListSection
+           t={t}
+           lang={lang}
+           show={showShoppingList}
+           items={generateShoppingList(weeklyPlan, lang)}
+           onClose={() => setShowShoppingList(false)}
+         />
 
       {/* Footer секция */}
 {/* Footer */}

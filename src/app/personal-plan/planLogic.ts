@@ -1,5 +1,5 @@
 import { meals } from "@/data/meals";
-import type { DayPlan, ExcludedSource, Goal, Meal, PlanMealType } from "./types";
+import type { DayPlan, ExcludedSource, Goal, Meal, PlanMealType, PlanStyle } from "./types";
 
 export type ShoppingIngredient = {
   name: string;
@@ -173,6 +173,75 @@ export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => 
     }
   }
   return bestPlan!;
+};
+
+const mealIngredientKeys = (meal: Meal) => new Set(
+  meal.ingredients.map((ingredient) => `${ingredient.name.bg}|${ingredient.name.en}`)
+);
+
+const daySignature = (day: DayPlan) => (["breakfast", "lunch", "dinner", "snack"] as PlanMealType[])
+  .map((type) => day.meals[type].map((meal) => meal.slug).sort().join(","))
+  .join("|");
+
+const generateIngredientFriendlyWeek = (
+  pool: typeof meals,
+  target: number,
+  choicesPerMealType: number
+): DayPlan[] => {
+  const firstDay = generateDayPlan(pool, target);
+  const coreIngredients = new Set(
+    Object.values(firstDay.meals).flat().flatMap((meal) => Array.from(mealIngredientKeys(meal)))
+  );
+  const compactPool = new Map<string, (typeof meals)[number]>();
+
+  (["breakfast", "lunch", "dinner", "snack"] as PlanMealType[]).forEach((type) => {
+    pool
+      .filter((meal) => meal.mealType.includes(type))
+      .map((meal) => ({
+        meal,
+        overlap: Array.from(mealIngredientKeys(meal)).filter((ingredient) => coreIngredients.has(ingredient)).length,
+      }))
+      .sort((a, b) => b.overlap - a.overlap || Math.random() - 0.5)
+      .slice(0, choicesPerMealType)
+      .forEach(({ meal }) => compactPool.set(meal.slug, meal));
+  });
+
+  const focusedPool = Array.from(compactPool.values());
+  const week = [firstDay];
+  const signatures = new Set([daySignature(firstDay)]);
+  while (week.length < 7) {
+    let candidate = generateDayPlan(focusedPool, target);
+    for (let attempt = 0; attempt < 4 && signatures.has(daySignature(candidate)); attempt += 1) {
+      candidate = generateDayPlan(focusedPool, target);
+    }
+    signatures.add(daySignature(candidate));
+    week.push(candidate);
+  }
+  return week;
+};
+
+export const generateWeekPlan = (pool: typeof meals, target: number, style: PlanStyle): DayPlan[] => {
+  if (style === "very-simple") {
+    // A small recipe pool adds light variety while strongly reusing ingredients.
+    return generateIngredientFriendlyWeek(pool, target, 4);
+  }
+
+  if (style === "simple") {
+    // A wider rotation still favors recipes built from the same core groceries.
+    return generateIngredientFriendlyWeek(pool, target, 7);
+  }
+
+  // Prefer unused recipes across the week. Once a meal type runs out, the
+  // full eligible pool becomes available again so every day remains complete.
+  const used = new Set<string>();
+  return Array.from({ length: 7 }, () => {
+    const unusedPool = pool.filter((meal) => !used.has(meal.slug));
+    const hasEveryMainType = (["breakfast", "lunch", "dinner"] as PlanMealType[])
+      .every((type) => unusedPool.some((meal) => meal.mealType.includes(type)));
+    const day = generateDayPlan(hasEveryMainType ? unusedPool : pool, target);
+    Object.values(day.meals).flat().forEach((meal) => used.add(meal.slug));
+    return day;
+  });
 };
 
 /* Legacy generator retained below temporarily

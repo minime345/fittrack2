@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
-import type { Diet, ExcludedSource, Goal } from "../types";
+import type { Diet, ExcludedSource, Goal, PlanStyle } from "../types";
 import { getTargetCalories } from "../planLogic";
 import { GoalSelector } from "./GoalSelector";
 import { ExclusionFilter } from "./ExclusionFilter";
@@ -16,6 +16,8 @@ type Props = {
   goalLabels: Record<Goal, string>;
   diet: Diet;
   setDiet: (diet: Diet) => void;
+  planStyle: PlanStyle;
+  setPlanStyle: (style: PlanStyle) => void;
   dietLabels: Record<Diet, string>;
   dietIcons: Record<Diet, string>;
   excludedSources: ExcludedSource[];
@@ -26,7 +28,7 @@ type Props = {
 };
 
 export function PlanOverview(props: Props) {
-  const { t, lang, baseCalories, proteinMin, proteinMax, goal, setGoal, goalLabels, diet, setDiet, dietLabels,
+  const { t, lang, baseCalories, proteinMin, proteinMax, goal, setGoal, goalLabels, diet, setDiet, planStyle, setPlanStyle, dietLabels,
     dietIcons, excludedSources, setExcludedSources, sourceOptions, showExcludedOptions, setShowExcludedOptions } = props;
 
   return (
@@ -37,7 +39,7 @@ export function PlanOverview(props: Props) {
         </p>
         <h1 className="fit-title-gradient text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">{t.Main.heading}</h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0 sm:text-base">
-          {lang === "bg" ? "Настрой целта и предпочитанията си, а после генерирай нов план. Текущият план остава запазен дотогава." : "Adjust your goal and preferences, then regenerate. Your current plan stays saved until then."}
+          {lang === "bg" ? "Настрой целта и предпочитанията си. Планът се обновява само при промяна и остава запазен при навигация." : "Adjust your goal and preferences. The plan updates only when they change and stays saved during navigation."}
         </p>
       </motion.div>
 
@@ -82,6 +84,43 @@ export function PlanOverview(props: Props) {
                   <span className="text-base">{dietIcons[key]}</span><span className="truncate">{label}</span>
                 </button>
               ))}
+            </div>
+          </div>
+          <div className="mt-5 border-t border-white/10 pt-5">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
+              {lang === "bg" ? "Разнообразие през седмицата" : "Weekly variety"}
+            </label>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {(["very-simple", "simple", "diverse"] as PlanStyle[]).map((style) => {
+                const selected = planStyle === style;
+                const simple = style === "simple";
+                const verySimple = style === "very-simple";
+                return (
+                  <button
+                    key={style}
+                    type="button"
+                    onClick={() => setPlanStyle(style)}
+                    aria-pressed={selected}
+                    className={`rounded-xl border px-3 py-2.5 text-left transition ${selected ? "border-green-400/70 bg-green-500/15" : "border-white/10 bg-black/15 hover:border-green-400/35"}`}
+                  >
+                    <span className={`block text-sm font-semibold ${selected ? "text-green-200" : "text-gray-200"}`}>
+                      {verySimple ? "▣ " : simple ? "◫ " : "✦ "}
+                      {verySimple
+                        ? (lang === "bg" ? "Лесна подготовка" : "Easy prep")
+                        : simple
+                          ? (lang === "bg" ? "Балансирана седмица" : "Balanced week")
+                          : (lang === "bg" ? "Нови рецепти" : "Recipe explorer")}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-gray-500">
+                      {verySimple
+                        ? (lang === "bg" ? "Най-много общи продукти" : "Most ingredient reuse")
+                        : simple
+                          ? (lang === "bg" ? "Разнообразие с общи продукти" : "Variety with shared groceries")
+                          : (lang === "bg" ? "Най-широк избор от ястия" : "The widest meal selection")}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

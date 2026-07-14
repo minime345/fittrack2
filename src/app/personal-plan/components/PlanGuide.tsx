@@ -9,32 +9,30 @@ const guideContent = {
   bg: {
     eyebrow: "Кратко ръководство",
     title: "Направи плана подходящ за теб",
-    intro: "Следвай стъпките по ред. Настройките се прилагат само когато генерираш нов план, а текущият остава запазен.",
+    intro: "Промените обновяват плана, а навигацията не го променя.",
     calculator: "Отвори калкулатора",
     calculated: "Калориите са взети от калкулатора",
     steps: [
-      ["Задай точни калории", "Използвай калкулатора за дневна цел според твоите данни и активност."],
-      ["Избери цел", "Поддържане, отслабване или покачване задава новата дневна калорийна цел."],
-      ["Настрой храненето", "Избери режим и изключи нежелани храни, после натисни „Генерирай нов план“."],
-      ["Прегледай седмицата", "Следи калориите и макросите за всеки ден. Малка разлика от целта е нормална за реалистични порции."],
-      ["Промени ястие или порция", "Натисни името за рецепта и грамаж. Използвай ↻ за подобно ястие, без голям калориен скок."],
-      ["Подготви седмицата", "Отвори списъка за пазаруване или изтегли PDF. Те използват текущите ястия и порции."],
+      ["Задай калории", "Изчисли дневната си цел."],
+      ["Избери цел", "Поддържане, отслабване или покачване."],
+      ["Настрой храненето", "Избери режим, изключвания и стил на плана."],
+      ["Промени ястие", "Натисни името за порция или ↻ за смяна."],
+      ["Запази плана", "Използвай списъка за пазаруване или PDF."],
     ],
     tip: "Съвет: планът се пази, когато отвориш рецепта и се върнеш назад.",
   },
   en: {
     eyebrow: "Quick guide",
     title: "Make the plan work for you",
-    intro: "Follow these steps in order. Settings apply only when you regenerate, while the current plan stays saved.",
+    intro: "Changes update the plan; navigation leaves it unchanged.",
     calculator: "Open calculator",
     calculated: "Calories imported from the calculator",
     steps: [
-      ["Set an accurate target", "Use the calculator to set daily calories from your measurements and activity level."],
-      ["Choose your goal", "Maintain, lose, or gain sets the new daily calorie target."],
-      ["Set food preferences", "Choose a diet and exclusions, then select “Regenerate plan” to apply them."],
-      ["Review the week", "Check each day's calories and macros. A small difference from the target keeps portions practical."],
-      ["Change a meal or portion", "Select a meal name for its recipe and weight. Use ↻ for a similar calorie-aware replacement."],
-      ["Prepare your week", "Open the shopping list or download the PDF. Both use your current meals and portions."],
+      ["Set calories", "Calculate your daily target."],
+      ["Choose a goal", "Maintain, lose, or gain."],
+      ["Set food preferences", "Choose diet, exclusions, and plan style."],
+      ["Change a meal", "Select its name for portions or ↻ to replace it."],
+      ["Save the plan", "Use the shopping list or PDF."],
     ],
     tip: "Tip: your plan stays saved when you open a recipe and return to this page.",
   },
@@ -56,7 +54,7 @@ export function PlanGuide({ lang, hasCalculatedTarget }: PlanGuideProps) {
         <span className="text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
       </summary>
 
-      <div className="border-t border-white/5 px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+      <div className="border-t border-white/5 px-5 pb-4 pt-3 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-2xl text-sm leading-relaxed text-gray-400">{copy.intro}</p>
           {hasCalculatedTarget ? (
@@ -70,9 +68,9 @@ export function PlanGuide({ lang, hasCalculatedTarget }: PlanGuideProps) {
           )}
         </div>
 
-        <ol className="mt-5 grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
+        <ol className="mt-3 grid gap-2 md:grid-cols-2 lg:grid-cols-5">
           {copy.steps.map(([title, description], index) => (
-            <li key={title} className="flex gap-3 rounded-2xl border border-white/5 bg-black/15 p-3.5">
+            <li key={title} className="flex gap-2.5 rounded-xl border border-white/5 bg-black/15 p-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-sm font-bold text-green-300">
                 {stepIcons[index]}
               </span>
@@ -84,7 +82,7 @@ export function PlanGuide({ lang, hasCalculatedTarget }: PlanGuideProps) {
           ))}
         </ol>
 
-        <p className="mt-4 rounded-xl border border-blue-400/10 bg-blue-400/5 px-3 py-2 text-xs text-blue-200/80">{copy.tip}</p>
+        <p className="mt-3 text-[11px] text-blue-200/75">{copy.tip}</p>
       </div>
     </details>
   );
