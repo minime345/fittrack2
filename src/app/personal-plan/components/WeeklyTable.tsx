@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { DayPlan, Meal, PlanMealType } from "../types";
 import { groupMealPortions, shortLabel } from "../planLogic";
 
@@ -7,8 +6,7 @@ type WeeklyTableProps = {
   lang: "bg" | "en";
   weeklyPlan: DayPlan[];
   mealTypeIcons: Record<PlanMealType, string>;
-  setSelectedMeal: (meal: Meal) => void;
-  setShowModal: (show: boolean) => void;
+  openMeal: (dayIndex: number, mealType: PlanMealType, meal: Meal) => void;
   replaceMeal: (dayIndex: number, mealType: PlanMealType, oldSlug: string) => void;
 };
 
@@ -17,12 +15,11 @@ export function WeeklyTable({
   lang,
   weeklyPlan,
   mealTypeIcons,
-  setSelectedMeal,
-  setShowModal,
+  openMeal,
   replaceMeal,
 }: WeeklyTableProps) {
   return (
-    <div className="hidden md:block overflow-x-auto rounded-lg shadow-lg border border-gray-800 bg-gray-900 text-gray-100 max-w-full">
+    <div className="fit-surface hidden md:block overflow-x-auto rounded-2xl shadow-lg border border-gray-800 bg-gray-900 text-gray-100 max-w-full">
       <table className="min-w-full table-fixed border-collapse divide-y divide-gray-700">
         <thead>
           <tr className="bg-gray-800 text-green-400 uppercase text-xs tracking-wider select-none border-b border-gray-600">
@@ -68,24 +65,12 @@ export function WeeklyTable({
                           title={meal.name[lang]}
                         >
                           <span className="shrink-0 text-xl select-none">{meal.icon || "🍽️"}</span>
-                          {meal.link ? (
-                            <Link
-                              href={meal.link}
-                              className="min-w-0 flex-1 truncate text-green-300 hover:text-green-400 no-underline"
-                            >
-                              {meal.name[lang]}
-                            </Link>
-                          ) : (
                             <button
-                              onClick={() => {
-                                setSelectedMeal(meal);
-                                setShowModal(true);
-                              }}
+                              onClick={() => openMeal(idx, mealType, meal)}
                               className="min-w-0 flex-1 truncate text-left text-green-300 hover:text-green-400 focus:outline-none"
                             >
                               {meal.name[lang]}
                             </button>
-                          )}
                           {servings > 1 && (
                             <span
                               className="shrink-0 rounded-full bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-300"

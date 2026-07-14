@@ -44,7 +44,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.875rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -118,5 +118,116 @@
   }
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+    background: #030712;
+    text-rendering: optimizeLegibility;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+  ::selection {
+    background: rgb(74 222 128 / 0.28);
+    color: white;
+  }
+  button, a, input, select {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, a {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+    transition-duration: 180ms;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid rgb(74 222 128 / 0.9);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .fit-shell {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip;
+    background:
+      radial-gradient(circle at 12% 8%, rgb(34 197 94 / 0.10), transparent 28rem),
+      radial-gradient(circle at 88% 26%, rgb(20 184 166 / 0.07), transparent 30rem),
+      linear-gradient(135deg, #030712 0%, #111827 52%, #1f2937 100%);
+  }
+  .fit-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.22;
+    background-image: linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, black, transparent 75%);
+  }
+  .fit-header {
+    background: rgb(3 7 18 / 0.72);
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    box-shadow: 0 10px 35px rgb(0 0 0 / 0.18);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+  .fit-logo-mark {
+    box-shadow: 0 0 0 1px rgb(134 239 172 / 0.22), 0 10px 30px rgb(34 197 94 / 0.22);
+  }
+  .fit-nav-link {
+    position: relative;
+    padding-block: 0.5rem;
+  }
+  .fit-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: 0;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4ade80, #2dd4bf);
+    transition: right 180ms ease;
+  }
+  .fit-nav-link:hover::after { right: 0; }
+  .fit-language {
+    min-width: 3rem;
+    border-radius: 999px;
+    background: rgb(34 197 94 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(74 222 128 / 0.08);
+  }
+  .fit-surface {
+    border: 1px solid rgb(255 255 255 / 0.09);
+    background: linear-gradient(145deg, rgb(31 41 55 / 0.78), rgb(17 24 39 / 0.68));
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.24), inset 0 1px rgb(255 255 255 / 0.04);
+    backdrop-filter: blur(18px);
+  }
+  .fit-primary-button {
+    border-radius: 0.875rem;
+    background: linear-gradient(135deg, #4ade80, #2dd4bf);
+    color: #020617;
+    box-shadow: 0 12px 28px rgb(34 197 94 / 0.20);
+  }
+  .fit-primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgb(34 197 94 / 0.30);
+  }
+  .fit-secondary-button {
+    border-radius: 0.875rem;
+    background: rgb(17 24 39 / 0.66);
+    box-shadow: inset 0 0 0 1px rgb(74 222 128 / 0.18);
+  }
+  .fit-secondary-button:hover {
+    transform: translateY(-2px);
+    background: rgb(34 197 94 / 0.12);
+  }
+  .fit-title-gradient {
+    color: transparent;
+    background-image: linear-gradient(110deg, #86efac 0%, #4ade80 48%, #2dd4bf 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }

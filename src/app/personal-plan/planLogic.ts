@@ -35,7 +35,54 @@ export const calculateTotal = (selectedMeals: DayPlan["meals"]): DayPlan["total"
     total.carbs += meal.carbs;
     total.fat += meal.fat;
   });
-  return total;
+  return Object.fromEntries(Object.entries(total).map(([key, value]) => [key, Math.round(value)])) as DayPlan["total"];
+};
+
+const roundRecipeAmount = (amount: number, unit: string): number => {
+  // Countable foods (eggs, bananas, avocados) are practical in half-item steps.
+  if (!unit) return Math.max(0.5, Math.round(amount * 2) / 2);
+  // Keep seasonings and other tiny quantities precise enough for cooking.
+  if (amount < 10) return Math.max(1, Math.round(amount));
+  // Typical additions such as oil, nuts, and cheese use 5 g/ml steps.
+  if (amount < 100) return Math.max(5, Math.round(amount / 5) * 5);
+  // Main ingredients use familiar 25 g/ml steps: 100, 125, 150, etc.
+  return Math.max(25, Math.round(amount / 25) * 25);
+};
+
+export const scaleMeal = (meal: Meal, multiplier: number): Meal => {
+  if (meal.fixedPortion) return meal;
+  const baseMultiplier = meal.portionMultiplier || 1;
+  const baseWeight = meal.weight / baseMultiplier;
+  const requestedScale = Math.max(0.5, Math.min(3, multiplier));
+  // Portion weights use practical 50 g increments: 300, 350, 400, etc.
+  const roundedWeight = Math.max(50, Math.round((baseWeight * requestedScale) / 50) * 50);
+  const scale = roundedWeight / baseWeight;
+  const round = (value: number) => Math.round((value / baseMultiplier) * scale);
+  return {
+    ...meal,
+    kcal: round(meal.kcal),
+    protein: round(meal.protein),
+    carbs: round(meal.carbs),
+    fat: round(meal.fat),
+    weight: roundedWeight,
+    ingredients: meal.ingredients.map((ingredient) => ({
+      ...ingredient,
+      amount: roundRecipeAmount((ingredient.amount / baseMultiplier) * scale, ingredient.unit),
+    })),
+    portionMultiplier: scale,
+  };
+};
+
+const scaleGeneratedMeal = (meal: Meal, multiplier: number): Meal => {
+  if (meal.fixedPortion) return meal;
+  // Generated plans should add another eating occasion instead of producing
+  // an impractically large single serving (for example, a 1 litre shake).
+  const maxWeight = meal.slug.includes("shake")
+    ? 500
+    : meal.mealType.includes("breakfast")
+      ? 600
+      : 800;
+  return scaleMeal(meal, Math.min(multiplier, maxWeight / meal.weight));
 };
 
 export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => {
@@ -47,7 +94,9 @@ export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => 
 
   let bestPlan: DayPlan | null = null;
   let bestDifference = Number.POSITIVE_INFINITY;
-  const snackLimit = target < 1600 ? 0 : target < 2100 ? 1 : target < 2700 ? 2 : 3;
+  // Higher targets can use more eating occasions, while ordinary plans keep
+  // snacks limited and continue to prioritize proper meals.
+  const snackLimit = target < 1800 ? 0 : target < 3000 ? 1 : target < 4000 ? 2 : 3;
 
   for (let attempt = 0; attempt < 600; attempt += 1) {
     const selectedMeals: DayPlan["meals"] = { breakfast: [], lunch: [], dinner: [], snack: [] };
@@ -58,27 +107,64 @@ export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => 
       selectedMeals[type] = [meal];
       used.add(meal.slug);
     }
-    const snacks = byType("snack").filter((meal) => !used.has(meal.slug));
-    selectedMeals.snack = [...snacks].sort(() => Math.random() - 0.5).slice(0, Math.min(snackLimit, snacks.length));
-    let total = calculateTotal(selectedMeals);
+    // Reserve the expected snack slots first so high-calorie days do not end
+    // up with no snacks simply because extra main meals filled the target.
+    const snackChoices = [...byType("snack")]
+      .filter((meal) => !used.has(meal.slug))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, snackLimit);
+    selectedMeals.snack = snackChoices;
+    snackChoices.forEach((meal) => used.add(meal.slug));
 
-    // A second serving is only added when it makes the daily target more accurate.
-    // No meal can be added more than twice.
-    for (let extraPortion = 0; extraPortion < 2 && total.kcal < target; extraPortion += 1) {
-      const doublePortionChoices = (Object.entries(selectedMeals) as [PlanMealType, Meal[]][])
-        .flatMap(([type, mealList]) => mealList.map((meal) => ({ type, meal })))
-        .filter(({ type, meal }) => selectedMeals[type].filter((item) => item.slug === meal.slug).length === 1)
-        .filter(({ meal }) => Math.abs(total.kcal + meal.kcal - target) < Math.abs(total.kcal - target));
-      if (!doublePortionChoices.length) break;
+    const reservedSnackCalories = calculateTotal({
+      breakfast: [], lunch: [], dinner: [], snack: selectedMeals.snack,
+    }).kcal;
+    const mainCalories = mainTypes.reduce((sum, type) => sum + selectedMeals[type][0].kcal, 0);
+    const requestedScale = Math.max(0, target - reservedSnackCalories) / mainCalories;
+    // Generated portions use familiar 25% serving steps and stay within a
+    // normal 0.75–1.5 serving range. The daily calories may be approximate.
+    const maxMainScale = target >= 3000 ? 2 : 1.5;
+    const mainScale = Math.max(0.75, Math.min(maxMainScale, Math.round(requestedScale * 4) / 4));
+    for (const type of mainTypes) selectedMeals[type] = [scaleGeneratedMeal(selectedMeals[type][0], mainScale)];
 
-      const bestDoublePortion = doublePortionChoices.reduce((best, candidate) =>
-        Math.abs(total.kcal + candidate.meal.kcal - target) < Math.abs(total.kcal + best.meal.kcal - target)
-          ? candidate
-          : best
+    // Add as many extra proper meals as the high target reasonably needs
+    // (up to six distinct meals) before reaching for more snacks.
+    const caloriesAfterMainMeals = calculateTotal(selectedMeals).kcal;
+    const extraMealLimit = Math.min(6, Math.max(0, Math.ceil((target - caloriesAfterMainMeals) / 600)));
+    for (let extra = 0; extra < extraMealLimit; extra += 1) {
+      const current = calculateTotal(selectedMeals);
+      if (target - current.kcal < 350) break;
+      // Fill the least-used main-meal slot first. This makes a second
+      // breakfast possible instead of endlessly enlarging the first one.
+      const typesByUse = [...mainTypes].sort((a, b) => selectedMeals[a].length - selectedMeals[b].length);
+      const type = typesByUse.find((candidateType) =>
+        pool.some((meal) => !used.has(meal.slug) && meal.mealType.includes(candidateType))
       );
-      selectedMeals[bestDoublePortion.type].push(bestDoublePortion.meal);
-      total = calculateTotal(selectedMeals);
+      if (!type) break;
+      const candidates = pool.filter((meal) => !used.has(meal.slug) && meal.mealType.includes(type));
+      if (!candidates.length) break;
+      const candidate = candidates.reduce((best, meal) =>
+        Math.abs(meal.kcal - (target - current.kcal)) < Math.abs(best.kcal - (target - current.kcal)) ? meal : best
+      );
+      const extraScale = Math.max(0.75, Math.min(1.5, Math.round(((target - current.kcal) / candidate.kcal) * 4) / 4));
+      const scaledCandidate = scaleGeneratedMeal(candidate, extraScale);
+      selectedMeals[type].push(scaledCandidate);
+      used.add(candidate.slug);
     }
+
+    // Non-packaged snacks remain flexible. Share a meaningful remaining gap
+    // between them, while store-bought fixed portions stay untouched.
+    const flexibleSnacks = selectedMeals.snack.filter((meal) => !meal.fixedPortion);
+    flexibleSnacks.forEach((snack) => {
+      const current = calculateTotal(selectedMeals);
+      const remaining = target - current.kcal;
+      if (remaining < 100) return;
+      const share = remaining / flexibleSnacks.length;
+      const scaledSnack = scaleGeneratedMeal(snack, Math.min(2, (snack.kcal + share) / snack.kcal));
+      selectedMeals.snack = selectedMeals.snack.map((item) => item.slug === snack.slug ? scaledSnack : item);
+    });
+
+    const total = calculateTotal(selectedMeals);
     const difference = Math.abs(total.kcal - target);
     if (difference < bestDifference) {
       bestPlan = { meals: selectedMeals, total };
@@ -171,7 +257,16 @@ export function generateShoppingList(weeklyPlan: DayPlan[], lang: "bg" | "en"): 
   });
 
   // Връщаме масив от съставки, сортиран по име
-  return Array.from(ingredientMap.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+  return Array.from(ingredientMap.values())
+    .map((ingredient) => ({
+      ...ingredient,
+      // Grams and millilitres are useful in 5-unit shopping increments;
+      // unitless foods such as eggs, bananas, and avocados are whole items.
+      amount: ingredient.unit === "g" || ingredient.unit === "ml"
+        ? ingredient.amount >= 100
+          ? Math.round(ingredient.amount / 50) * 50
+          : Math.round(ingredient.amount / 5) * 5
+        : Math.round(ingredient.amount),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }

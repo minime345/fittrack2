@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import type { Meal } from "../types";
 
 type MealModalProps = {
@@ -7,9 +8,10 @@ type MealModalProps = {
   showModal: boolean;
   selectedMeal: Meal | null;
   setShowModal: (show: boolean) => void;
+  onWeightChange: (weight: number) => void;
 };
 
-export function MealModal({ t, lang, showModal, selectedMeal, setShowModal }: MealModalProps) {
+export function MealModal({ t, lang, showModal, selectedMeal, setShowModal, onWeightChange }: MealModalProps) {
   return (
     <AnimatePresence>
       {showModal && selectedMeal && (
@@ -20,7 +22,7 @@ export function MealModal({ t, lang, showModal, selectedMeal, setShowModal }: Me
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-gray-900 text-white rounded-xl w-[90%] max-w-md shadow-lg border border-green-500 flex flex-col overflow-hidden"
+            className="fit-surface bg-gray-900 text-white rounded-3xl w-[92%] max-w-md shadow-2xl border border-green-500/50 flex flex-col overflow-hidden"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -49,8 +51,49 @@ export function MealModal({ t, lang, showModal, selectedMeal, setShowModal }: Me
                 <div>{t.Main.proteinLabel} <span className="text-white">{selectedMeal.protein}</span> g</div>
                 <div>{t.Main.carb}<span className="text-white">{selectedMeal.carbs}</span> g</div>
                 <div>{t.Main.fat} <span className="text-white">{selectedMeal.fat}</span> g</div>
-                <div>Тегло: <span className="text-white">{selectedMeal.weight}</span> g</div>
+                <label className="mt-3 block text-gray-300">
+                  {lang === "bg" ? "Тегло на порцията" : "Portion weight"}
+                  {selectedMeal.fixedPortion ? (
+                    <div className="mt-1 text-white">
+                      {selectedMeal.weight} g <span className="text-xs text-gray-400">({lang === "bg" ? "готова опаковка" : "packaged serving"})</span>
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="50"
+                        max="2000"
+                        step="50"
+                        value={selectedMeal.weight}
+                        onChange={(event) => onWeightChange(Number(event.target.value))}
+                        className="w-28 rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white"
+                      />
+                      <span>g</span>
+                    </div>
+                  )}
+                </label>
               </div>
+              <div className="mt-5">
+                <h3 className="mb-2 font-semibold text-green-400">
+                  {lang === "bg" ? "Съставки за тази порция" : "Ingredients for this portion"}
+                </h3>
+                <ul className="space-y-1 text-sm text-gray-300">
+                  {selectedMeal.ingredients.map((ingredient, index) => (
+                    <li key={`${ingredient.name[lang]}-${index}`} className="flex justify-between gap-4">
+                      <span>{ingredient.name[lang]}</span>
+                      <span className="whitespace-nowrap text-white">{ingredient.amount} {ingredient.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {selectedMeal && (
+                <Link
+                  href={`${selectedMeal.link || `/meals/${selectedMeal.slug}`}?portion=${selectedMeal.weight}`}
+                  className="mt-5 block rounded-lg bg-green-500 px-4 py-2 text-center font-semibold text-black hover:bg-green-400"
+                >
+                  {lang === "bg" ? "Отвори рецептата за тази порция" : "Open recipe for this portion"}
+                </Link>
+              )}
             </div>
           </motion.div>
         </motion.div>

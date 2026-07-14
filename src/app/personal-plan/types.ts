@@ -1,4 +1,4 @@
-import { meals } from "@/data/meals";
+import type { Meal as BaseMeal } from "@/data/meals";
 
 export type LocalizedString = { bg: string; en: string };
 export type Goal = "maintain" | "lose" | "gain";
@@ -9,7 +9,7 @@ export type Ingredient = {
   amount: number;
   unit: string;
 };
-export type Meal = (typeof meals)[number];
+export type Meal = BaseMeal & { portionMultiplier?: number };
 export type PlanMealType = "breakfast" | "lunch" | "dinner" | "snack";
 export type DayPlan = {
   meals: Record<PlanMealType, Meal[]>;

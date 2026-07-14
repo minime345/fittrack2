@@ -17,7 +17,7 @@ import { Analytics } from "@vercel/analytics/react";
 function Logo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-md">
+      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
         F
       </div>
       <span className="text-xl md:text-2xl font-bold tracking-wide text-white">FitAppTrack</span>
@@ -29,7 +29,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
+      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
     >
       {label}
     </Link>
@@ -58,8 +58,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
+    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
+      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <Logo />
 
@@ -77,7 +77,7 @@ export default function Home() {
             <button
               onClick={toggleLang}
               aria-label="Switch language"
-              className="px-3 py-1 border border-green-400 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
+              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 hover:bg-green-500 hover:text-black transition text-sm font-medium"
             >
               {lang === "bg" ? "BG" : "EN"}
             </button>
@@ -106,12 +106,12 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto text-center px-6 py-24">
+      <section className="max-w-6xl mx-auto text-center px-6 py-20 sm:py-28">
         <MotionH1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-4xl md:text-6xl font-extrabold text-green-400 mb-6"
+          className="fit-title-gradient text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6"
         >
           {t.homepage.Title}
         </MotionH1>
@@ -134,13 +134,13 @@ export default function Home() {
         >
           <Link
             href="/calculator"
-            className="bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-3 rounded-lg shadow-lg transition"
+            className="fit-primary-button bg-green-500 hover:bg-green-400 text-black font-semibold px-7 py-3.5 rounded-lg shadow-lg transition"
           >
             {t.homepage.btnCalc}
           </Link>
           <Link
             href="/personal-plan"
-            className="border border-green-500 text-green-400 hover:bg-green-500 hover:text-black font-semibold px-6 py-3 rounded-lg shadow-lg transition"
+            className="fit-secondary-button border border-green-500/70 text-green-400 hover:bg-green-500 hover:text-black font-semibold px-7 py-3.5 rounded-lg shadow-lg transition"
           >
             {t.homepage.btnPersonal}
           </Link>
@@ -157,7 +157,7 @@ export default function Home() {
             alt="Fit Lifestyle"
             width={720}
             height={480}
-            className="mx-auto rounded-3xl shadow-2xl border border-white/10"
+            className="mx-auto rounded-[2rem] shadow-2xl border border-white/10 ring-1 ring-green-400/10"
           />
         </MotionDiv>
       </section>

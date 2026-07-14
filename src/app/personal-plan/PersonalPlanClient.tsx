@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { meals } from "@/data/meals";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -9,13 +9,14 @@ import { translations, type Lang } from "@/lib/translations-plans";
 import { useLang } from "@/context/LangContext";
 import { Analytics } from "@vercel/analytics/react";
 
-import type { Diet, ExcludedSource, Goal, PlanMealType, DayPlan } from "./types";
+import type { Diet, ExcludedSource, Goal, PlanMealType, DayPlan, Meal } from "./types";
 import {
   getTargetCalories,
   filterByMeatType,
   calculateTotal,
   generateDayPlan,
   generateShoppingList,
+  scaleMeal,
 } from "./planLogic";
 import { downloadPDF } from "./pdfExport";
 import { HeaderNav } from "./components/HeaderNav";
@@ -26,6 +27,7 @@ import { WeeklyCards } from "./components/WeeklyCards";
 import { ShoppingListSection } from "./components/ShoppingListSection";
 import { SiteFooter } from "./components/SiteFooter";
 import { MealModal } from "./components/MealModal";
+import { PlanOverview } from "./components/PlanOverview";
 
 export default function PersonalPlanPage() {
   const searchParams = useSearchParams();
@@ -57,9 +59,40 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
   // Новите стейтове за модалния прозорец
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedMeal, setSelectedMeal] = useState<typeof meals[0] | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{ dayIndex: number; mealType: PlanMealType } | null>(null);
 
   const [weeklyPlan, setWeeklyPlan] = useState<DayPlan[]>([]);
+  const [planStorageReady, setPlanStorageReady] = useState(false);
+  const restoredPlanRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("fittrack-active-plan-v1");
+      if (raw) {
+        const saved = JSON.parse(raw) as {
+          baseCalories: number;
+          goal: Goal;
+          diet: Diet;
+          excludedSources: ExcludedSource[];
+          weeklyPlan: DayPlan[];
+          swapHistory?: Record<string, string[]>;
+        };
+        if (saved.baseCalories === baseCalories && Array.isArray(saved.weeklyPlan) && saved.weeklyPlan.length === 7) {
+          setGoal(saved.goal);
+          setDiet(saved.diet);
+          setExcludedSources(saved.excludedSources || []);
+          setWeeklyPlan(saved.weeklyPlan);
+          setSwapHistory(saved.swapHistory || {});
+          restoredPlanRef.current = true;
+        }
+      }
+    } catch {
+      sessionStorage.removeItem("fittrack-active-plan-v1");
+    } finally {
+      setPlanStorageReady(true);
+    }
+  }, [baseCalories]);
 
   const goalLabels: Record<Goal, string> = {
     maintain: t.Main.maintain,
@@ -117,6 +150,11 @@ useEffect(() => {
   };
 }, [showModal]);
   useEffect(() => {
+  if (!planStorageReady) return;
+  if (restoredPlanRef.current) {
+    restoredPlanRef.current = false;
+    return;
+  }
   const dailyCalories = getTargetCalories(goal, baseCalories);
 
   // Филтриране по диета
@@ -130,7 +168,19 @@ useEffect(() => {
   );
 
   setWeeklyPlan(weekPlan);
-}, [baseCalories, goal, diet, excludedSources]);
+}, [baseCalories, goal, diet, excludedSources, planStorageReady]);
+
+useEffect(() => {
+  if (!planStorageReady || weeklyPlan.length !== 7) return;
+  sessionStorage.setItem("fittrack-active-plan-v1", JSON.stringify({
+    baseCalories,
+    goal,
+    diet,
+    excludedSources,
+    weeklyPlan,
+    swapHistory,
+  }));
+}, [baseCalories, goal, diet, excludedSources, weeklyPlan, swapHistory, planStorageReady]);
 
 const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) => {
   const target = getTargetCalories(goal, baseCalories);
@@ -151,12 +201,19 @@ const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) 
   if (!candidates.length) return;
 
   const caloriesWithoutOld = day.total.kcal - oldMeal.kcal * portionCount;
+  // Preserve the calorie role of the slot. Matching only the old weight can
+  // drastically reduce calories when the replacement is less calorie-dense.
+  const preservePortion = (candidate: Meal) =>
+    scaleMeal(candidate, oldMeal.kcal / candidate.kcal);
   const closestChoices = [...candidates]
-    .sort((a, b) =>
-      Math.abs(caloriesWithoutOld + a.kcal * portionCount - target) - Math.abs(caloriesWithoutOld + b.kcal * portionCount - target)
-    )
+    .sort((a, b) => {
+      const scaledA = preservePortion(a);
+      const scaledB = preservePortion(b);
+      return Math.abs(caloriesWithoutOld + scaledA.kcal * portionCount - target)
+        - Math.abs(caloriesWithoutOld + scaledB.kcal * portionCount - target);
+    })
     .slice(0, Math.min(3, candidates.length));
-  const replacement = closestChoices[Math.floor(Math.random() * closestChoices.length)];
+  const replacement = preservePortion(closestChoices[Math.floor(Math.random() * closestChoices.length)]);
 
   // Replace every serving of the old meal with the new one, so a double
   // portion stays a double portion of the newly-swapped meal.
@@ -178,16 +235,46 @@ const handleDownloadPDF = () => {
   downloadPDF({ t, weeklyPlan, goal, goalLabels, diet, dietLabels, lang });
 };
 
+const openMeal = (dayIndex: number, mealType: PlanMealType, meal: Meal) => {
+  setSelectedMeal(meal);
+  setSelectedLocation({ dayIndex, mealType });
+  setShowModal(true);
+};
+
+const changeMealWeight = (weight: number) => {
+  if (!selectedMeal || !selectedLocation || !Number.isFinite(weight) || weight < 50) return;
+  const baseWeight = selectedMeal.weight / (selectedMeal.portionMultiplier || 1);
+  const updatedMeal = scaleMeal(selectedMeal, weight / baseWeight);
+  const { dayIndex, mealType } = selectedLocation;
+  setSelectedMeal(updatedMeal);
+  setWeeklyPlan((currentPlan) => currentPlan.map((day, index) => {
+    if (index !== dayIndex) return day;
+    const updatedMeals = {
+      ...day.meals,
+      [mealType]: day.meals[mealType].map((meal) => meal.slug === selectedMeal.slug ? updatedMeal : meal),
+    };
+    return { meals: updatedMeals, total: calculateTotal(updatedMeals) };
+  }));
+};
+
   return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
+      <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
        <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+  <PlanOverview
+    t={t} lang={lang} baseCalories={baseCalories} proteinMin={proteinMin} proteinMax={proteinMax}
+    goal={goal} setGoal={setGoal} goalLabels={goalLabels} diet={diet} setDiet={setDiet}
+    dietLabels={dietLabels} dietIcons={dietIcons} excludedSources={excludedSources}
+    setExcludedSources={setExcludedSources} sourceOptions={sourceOptions}
+    showExcludedOptions={showExcludedOptions} setShowExcludedOptions={setShowExcludedOptions}
+  />
+  <div className="hidden">
   <motion.h1
     initial={{ opacity: 0, y: -10 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
-    className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300 text-center mb-6"
+    className="fit-title-gradient text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center mb-7"
   >
     {t.Main.heading}
   </motion.h1>
@@ -208,7 +295,7 @@ const handleDownloadPDF = () => {
     </motion.div>
   )}
 
-  <div className="bg-gray-800 px-4 py-3 rounded-lg shadow-md text-white border border-green-500 text-base sm:text-lg w-full sm:max-w-md mx-auto">
+  <div className="fit-surface bg-gray-800/80 px-5 py-4 rounded-2xl shadow-md text-white border border-green-500/40 text-base sm:text-lg w-full sm:max-w-md mx-auto">
   <div className="flex justify-between items-center">
     <span className="text-green-400 font-semibold">
       {t.Main.calculateButton} {goalLabels[goal]}:
@@ -271,13 +358,13 @@ const handleDownloadPDF = () => {
 
 
       {/* --- Десктоп: таблица с разграфяване --- */}
+  </div>
   <WeeklyTable
     t={t}
     lang={lang}
     weeklyPlan={weeklyPlan}
     mealTypeIcons={mealTypeIcons}
-    setSelectedMeal={setSelectedMeal}
-    setShowModal={setShowModal}
+    openMeal={openMeal}
     replaceMeal={replaceMeal}
   />
 
@@ -288,8 +375,7 @@ const handleDownloadPDF = () => {
   weeklyPlan={weeklyPlan}
   mealTypeIcons={mealTypeIcons}
   mealTypeLabels={mealTypeLabels}
-  setSelectedMeal={setSelectedMeal}
-  setShowModal={setShowModal}
+  openMeal={openMeal}
   replaceMeal={replaceMeal}
 />
 
@@ -310,7 +396,7 @@ const handleDownloadPDF = () => {
       {/* Footer секция */}
 {/* Footer */}
       <SiteFooter t={t} currentYear={currentYear} />
-      <MealModal t={t} lang={lang} showModal={showModal} selectedMeal={selectedMeal} setShowModal={setShowModal} />
+      <MealModal t={t} lang={lang} showModal={showModal} selectedMeal={selectedMeal} setShowModal={setShowModal} onWeightChange={changeMealWeight} />
  
       <Analytics />
     </main>

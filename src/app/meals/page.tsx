@@ -15,7 +15,7 @@ const mealsPerPage = 6;
 function Logo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-md">
+      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
         F
       </div>
       <span className="text-xl md:text-2xl font-bold tracking-wide text-white">FitTrack</span>
@@ -27,7 +27,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
+      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
     >
       {label}
     </Link>
@@ -69,9 +69,9 @@ export default function MealsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
+    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
       {/* Навигация */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
+      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <Logo />
 
@@ -89,7 +89,7 @@ export default function MealsPage() {
             <button
               onClick={toggleLang}
               aria-label="Switch language"
-              className="px-3 py-1 border border-green-400 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
+              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 hover:bg-green-500 hover:text-black transition text-sm font-medium"
             >
               {lang === "bg" ? "BG" : "EN"}
             </button>
@@ -123,7 +123,7 @@ export default function MealsPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-4xl font-bold text-green-400 mb-8 text-center"
+          className="fit-title-gradient text-4xl sm:text-5xl font-extrabold tracking-tight mb-10 text-center"
         >
           {t.meals.hed}
         </motion.h1>
@@ -157,10 +157,10 @@ export default function MealsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-gray-900/60 hover:bg-gray-800/80 transition rounded-2xl p-6 shadow-xl border border-white/10 backdrop-blur"
+              className="fit-surface group bg-gray-900/60 hover:-translate-y-1 hover:border-green-400/30 hover:bg-gray-800/80 transition rounded-3xl p-6 shadow-xl border border-white/10 backdrop-blur"
             >
-              {meal.link ? (
-                <Link href={meal.link} className="block h-full">
+              {true ? (
+                <Link href={meal.link || `/meals/${meal.slug}`} className="block h-full">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="text-4xl">{meal.icon}</div>
                     <h2 className="text-xl font-bold text-green-400">{meal.name[lang]}</h2>

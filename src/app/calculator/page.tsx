@@ -11,7 +11,7 @@ import { Analytics } from "@vercel/analytics/react";
 function Logo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-md">
+      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
         F
       </div>
       <span className="text-xl md:text-2xl font-bold tracking-wide text-white">FitTrack</span>
@@ -23,7 +23,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
+      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
     >
       {label}
     </Link>
@@ -123,8 +123,8 @@ export default function Calculator() {
     }, 100);
   };
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
+    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
+      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <Logo />
       
@@ -142,7 +142,7 @@ export default function Calculator() {
             <button
               onClick={toggleLang}
               aria-label="Switch language"
-              className="px-3 py-1 border border-green-400 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
+              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 hover:bg-green-500 hover:text-black transition text-sm font-medium"
             >
               {lang === "bg" ? "BG" : "EN"}
             </button>
@@ -170,9 +170,9 @@ export default function Calculator() {
         )}
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-white/5 rounded-xl shadow-xl backdrop-blur-md border border-white/10 p-8">
-          <h1 className="text-3xl font-extrabold text-green-400 mb-6 text-center">{t.calculator.title}</h1>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <div className="fit-surface bg-white/5 rounded-3xl shadow-xl backdrop-blur-md border border-white/10 p-5 sm:p-8">
+          <h1 className="fit-title-gradient text-3xl sm:text-4xl font-extrabold mb-8 text-center">{t.calculator.title}</h1>
 
           <form
             onSubmit={(e) => {
@@ -190,7 +190,7 @@ export default function Calculator() {
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full p-2 rounded bg-gray-800 text-white focus:outline-green-400"
+                className="w-full rounded-xl border border-white/10 bg-gray-950/60 p-3 text-white outline-none transition focus:border-green-400/70 focus:ring-4 focus:ring-green-500/10"
               >
                 <option value="male">{t.calculator.male}</option>
                 <option value="female">{t.calculator.female}</option>
@@ -252,7 +252,7 @@ export default function Calculator() {
 
             <button
               type="submit"
-              className="sm:col-span-2 mt-4 w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-3 rounded-lg transition"
+              className="fit-primary-button sm:col-span-2 mt-4 w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-3.5 rounded-lg transition"
             >
               {t.calculator.calculate}
             </button>
@@ -290,7 +290,7 @@ export default function Calculator() {
                     `/personal-plan?calories=${result}&age=${age}&weight=${weight}&height=${height}&gender=${gender}&activity=${activity}&bodyFat=${bodyFat ?? ''}&proteinMin=${proteinRange?.[0]}&proteinMax=${proteinRange?.[1]}`
                   );
                 }}
-                className="mt-6 w-full sm:w-auto bg-green-500 hover:bg-green-600 text-black font-semibold py-3 px-6 rounded-lg transition"
+                className="fit-primary-button mt-6 w-full sm:w-auto bg-green-500 hover:bg-green-600 text-black font-semibold py-3 px-6 rounded-lg transition"
               >
                 {t.calculator.planButton}
               </button>
@@ -420,14 +420,14 @@ function InputField({
         min={min}
         max={max}
         step={step ?? "any"}
-        className="w-full p-2 rounded bg-gray-800 text-white focus:outline-green-400"
+        className="w-full rounded-xl border border-white/10 bg-gray-950/60 p-3 text-white outline-none transition focus:border-green-400/70 focus:ring-4 focus:ring-green-500/10"
       />
     </div>
   );
 }
 function InfoCard({ title, value }: { title: string; value: number }) {
   return (
-    <div className="bg-gray-800 rounded-lg p-4 shadow text-center">
+    <div className="fit-surface bg-gray-800 rounded-xl p-4 shadow text-center">
       <h3 className="text-green-300 font-semibold text-sm mb-1">{title}</h3>
       <p className="text-white font-bold text-lg">{value} kcal</p>
     </div>

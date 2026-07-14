@@ -20,10 +20,12 @@ export type Meal = {
   categories: string[];
   name: LocalizedString;
   recipe: LocalizedString;
+  recipeSteps?: { bg: string[]; en: string[] };
   ingredients: Ingredient[];
   link: string;
   mealType: string[];
   proteinSource: string;
+  fixedPortion?: boolean;
 };
 
 
@@ -317,6 +319,7 @@ export const meals = [
 },
 {
   slug: "protein-bar-choco",
+  fixedPortion: true,
   icon: "🍫",
   kcal: 220,
   protein: 20,
@@ -417,6 +420,7 @@ export const meals = [
   },
   {
     slug: "vegan-protein-bar",
+    fixedPortion: true,
     icon: "🌰",
     kcal: 210,
     protein: 12,
@@ -752,9 +756,161 @@ export const meals = [
     link: "",
     mealType: ["lunch"],
     proteinSource: "beef"
+  },
+  {
+    slug: "cottage-cheese-berries",
+    icon: "🫐",
+    kcal: 300,
+    protein: 28,
+    carbs: 28,
+    fat: 8,
+    weight: 320,
+    categories: ["vegetarian", "balanced", "high-protein"],
+    name: { bg: "Извара с горски плодове и овес", en: "Cottage Cheese with Berries and Oats" },
+    recipe: { bg: "Смеси изварата с овеса, горските плодове и малко мед.", en: "Combine cottage cheese with oats, berries, and a little honey." },
+    recipeSteps: {
+      bg: ["Сложи изварата в купа.", "Добави овеса и горските плодове.", "Полей с мед и разбъркай."],
+      en: ["Add the cottage cheese to a bowl.", "Top with oats and berries.", "Drizzle with honey and mix."],
+    },
+    ingredients: [
+      { name: { bg: "извара", en: "cottage cheese" }, amount: 200, unit: "g" },
+      { name: { bg: "горски плодове", en: "mixed berries" }, amount: 80, unit: "g" },
+      { name: { bg: "овесени ядки", en: "oats" }, amount: 30, unit: "g" },
+      { name: { bg: "мед", en: "honey" }, amount: 10, unit: "g" },
+    ],
+    link: "",
+    mealType: ["breakfast", "snack"],
+    proteinSource: "dairy",
+  },
+  {
+    slug: "roasted-chickpeas",
+    icon: "🫘",
+    kcal: 230,
+    protein: 11,
+    carbs: 34,
+    fat: 6,
+    weight: 160,
+    categories: ["vegan", "vegetarian", "balanced", "snack"],
+    name: { bg: "Хрупкав печен нахут", en: "Crispy Roasted Chickpeas" },
+    recipe: { bg: "Изпечи нахута със зехтин, пушен пипер и сол до хрупкавост.", en: "Roast chickpeas with olive oil, smoked paprika, and salt until crisp." },
+    recipeSteps: {
+      bg: ["Подсуши добре сварения нахут.", "Смеси го със зехтина и подправките.", "Печи 25–30 минути на 200°C, като разбъркаш веднъж."],
+      en: ["Pat the cooked chickpeas dry.", "Toss with olive oil and spices.", "Roast at 200°C for 25–30 minutes, stirring once."],
+    },
+    ingredients: [
+      { name: { bg: "нахут", en: "chickpeas" }, amount: 150, unit: "g" },
+      { name: { bg: "зехтин", en: "olive oil" }, amount: 5, unit: "ml" },
+      { name: { bg: "пушен пипер и сол", en: "smoked paprika and salt" }, amount: 2, unit: "g" },
+    ],
+    link: "",
+    mealType: ["snack"],
+    proteinSource: "vegan",
+  },
+  {
+    slug: "edamame-sea-salt",
+    icon: "🫛",
+    kcal: 190,
+    protein: 18,
+    carbs: 14,
+    fat: 8,
+    weight: 160,
+    categories: ["vegan", "vegetarian", "high-protein", "snack"],
+    name: { bg: "Едамаме с морска сол и лимон", en: "Edamame with Sea Salt and Lemon" },
+    recipe: { bg: "Свари едамамето и го овкуси с морска сол и лимон.", en: "Boil the edamame and season with sea salt and lemon." },
+    recipeSteps: {
+      bg: ["Свари едамамето за 4–5 минути.", "Отцеди го добре.", "Добави морска сол и лимонов сок."],
+      en: ["Boil the edamame for 4–5 minutes.", "Drain well.", "Finish with sea salt and lemon juice."],
+    },
+    ingredients: [
+      { name: { bg: "едамаме", en: "edamame" }, amount: 150, unit: "g" },
+      { name: { bg: "лимон", en: "lemon" }, amount: 0.5, unit: "" },
+      { name: { bg: "морска сол", en: "sea salt" }, amount: 1, unit: "g" },
+    ],
+    link: "",
+    mealType: ["snack"],
+    proteinSource: "vegan",
+  },
+  {
+    slug: "turkey-sweet-potato-bowl",
+    icon: "🍠",
+    kcal: 560,
+    protein: 46,
+    carbs: 58,
+    fat: 16,
+    weight: 500,
+    categories: ["balanced", "high-protein"],
+    name: { bg: "Пуешко със сладък картоф и зеленчуци", en: "Turkey and Sweet Potato Bowl" },
+    recipe: { bg: "Изпечи сладкия картоф и сервирай с пуешко и пресни зеленчуци.", en: "Roast the sweet potato and serve with turkey and fresh vegetables." },
+    recipeSteps: {
+      bg: ["Нарежи и изпечи сладкия картоф на 200°C.", "Запечи пуешкото с подправки.", "Подреди със зеленчуците и добави соса от кисело мляко."],
+      en: ["Cube and roast the sweet potato at 200°C.", "Cook the seasoned turkey until done.", "Assemble with vegetables and yogurt sauce."],
+    },
+    ingredients: [
+      { name: { bg: "пуешко филе", en: "turkey breast" }, amount: 180, unit: "g" },
+      { name: { bg: "сладък картоф", en: "sweet potato" }, amount: 220, unit: "g" },
+      { name: { bg: "зелени зеленчуци", en: "green vegetables" }, amount: 100, unit: "g" },
+      { name: { bg: "кисело мляко", en: "yogurt" }, amount: 40, unit: "g" },
+    ],
+    link: "",
+    mealType: ["lunch", "dinner"],
+    proteinSource: "chicken",
+  },
+  {
+    slug: "tuna-white-bean-salad",
+    icon: "🥗",
+    kcal: 480,
+    protein: 42,
+    carbs: 45,
+    fat: 14,
+    weight: 450,
+    categories: ["balanced", "high-protein", "mediterranean"],
+    name: { bg: "Салата с риба тон и бял боб", en: "Tuna and White Bean Salad" },
+    recipe: { bg: "Смеси риба тон, бял боб, домати, краставица и лимонов дресинг.", en: "Combine tuna, white beans, tomatoes, cucumber, and lemon dressing." },
+    recipeSteps: {
+      bg: ["Изплакни и отцеди боба.", "Нарежи зеленчуците и добави рибата тон.", "Овкуси със зехтин, лимон и магданоз."],
+      en: ["Rinse and drain the beans.", "Chop the vegetables and add the tuna.", "Dress with olive oil, lemon, and parsley."],
+    },
+    ingredients: [
+      { name: { bg: "риба тон", en: "tuna" }, amount: 150, unit: "g" },
+      { name: { bg: "бял боб", en: "white beans" }, amount: 150, unit: "g" },
+      { name: { bg: "домати и краставица", en: "tomatoes and cucumber" }, amount: 140, unit: "g" },
+      { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" },
+    ],
+    link: "",
+    mealType: ["lunch", "dinner"],
+    proteinSource: "fish",
+  },
+  {
+    slug: "shrimp-quinoa-vegetables",
+    icon: "🍤",
+    kcal: 510,
+    protein: 44,
+    carbs: 52,
+    fat: 14,
+    weight: 480,
+    categories: ["balanced", "high-protein", "mediterranean"],
+    name: { bg: "Скариди с киноа и зеленчуци", en: "Shrimp with Quinoa and Vegetables" },
+    recipe: { bg: "Запечи скаридите и ги сервирай с киноа и задушени зеленчуци.", en: "Sauté the shrimp and serve with quinoa and vegetables." },
+    recipeSteps: {
+      bg: ["Свари киноата според указанията.", "Задуши зеленчуците до леко омекване.", "Запечи скаридите за 3–4 минути и смеси всичко."],
+      en: ["Cook the quinoa according to its instructions.", "Sauté the vegetables until just tender.", "Cook the shrimp for 3–4 minutes and combine."],
+    },
+    ingredients: [
+      { name: { bg: "скариди", en: "shrimp" }, amount: 180, unit: "g" },
+      { name: { bg: "киноа", en: "quinoa" }, amount: 80, unit: "g" },
+      { name: { bg: "тиквички и чушки", en: "zucchini and peppers" }, amount: 200, unit: "g" },
+      { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" },
+    ],
+    link: "",
+    mealType: ["lunch", "dinner"],
+    proteinSource: "fish",
   }
 
-];
+].filter((meal) => ![
+  "boiled-egg-avocado",
+  "vegan-protein-bar",
+  "vegan-protein-shake-plant-milk",
+].includes(meal.slug));
 
 
 

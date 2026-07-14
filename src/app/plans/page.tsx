@@ -12,7 +12,7 @@ import { Analytics } from "@vercel/analytics/react";
 function Logo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-md">
+      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
         F
       </div>
       <span className="text-xl md:text-2xl font-bold tracking-wide text-white">
@@ -26,7 +26,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
+      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
     >
       {label}
     </Link>
@@ -55,9 +55,9 @@ export default function Plans() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
+    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
       {/* Navigation */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
+      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <Logo />
       
@@ -75,7 +75,7 @@ export default function Plans() {
             <button
               onClick={toggleLang}
               aria-label="Switch language"
-              className="px-3 py-1 border border-green-400 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
+              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
             >
               {lang === "bg" ? "BG" : "EN"}
             </button>
@@ -109,7 +109,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-4xl md:text-5xl font-extrabold text-green-400 mb-6"
+          className="fit-title-gradient text-4xl md:text-6xl font-extrabold tracking-tight mb-6"
         >
           {t.plansPage.header.title}
         </motion.h1>
@@ -134,7 +134,7 @@ export default function Plans() {
           >
             <Link
               href={plan.href}
-              className="relative block rounded-2xl overflow-hidden group shadow-lg hover:shadow-xl transition"
+              className="fit-surface relative block rounded-3xl overflow-hidden group shadow-lg hover:-translate-y-1 hover:border-green-400/30 hover:shadow-2xl transition"
             >
               <Image
                 src={plan.image}
@@ -169,7 +169,7 @@ export default function Plans() {
         >
           <Link
             href="/personal-plan"
-            className="inline-block bg-green-500 text-black font-bold py-3 px-6 rounded-xl hover:bg-green-400 transition"
+            className="fit-primary-button inline-block bg-green-500 text-black font-bold py-3.5 px-7 rounded-xl hover:bg-green-400 transition"
           >
             {t.plansPage.cta.button}
           </Link>

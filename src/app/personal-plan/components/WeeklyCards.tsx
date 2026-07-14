@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { DayPlan, Meal, PlanMealType } from "../types";
 import { groupMealPortions, shortLabel } from "../planLogic";
 
@@ -8,8 +7,7 @@ type WeeklyCardsProps = {
   weeklyPlan: DayPlan[];
   mealTypeIcons: Record<PlanMealType, string>;
   mealTypeLabels: Record<PlanMealType, string>;
-  setSelectedMeal: (meal: Meal) => void;
-  setShowModal: (show: boolean) => void;
+  openMeal: (dayIndex: number, mealType: PlanMealType, meal: Meal) => void;
   replaceMeal: (dayIndex: number, mealType: PlanMealType, oldSlug: string) => void;
 };
 
@@ -19,8 +17,7 @@ export function WeeklyCards({
   weeklyPlan,
   mealTypeIcons,
   mealTypeLabels,
-  setSelectedMeal,
-  setShowModal,
+  openMeal,
   replaceMeal,
 }: WeeklyCardsProps) {
   return (
@@ -28,7 +25,7 @@ export function WeeklyCards({
       {weeklyPlan.map((day, idx) => (
         <div
           key={idx}
-          className="overflow-hidden rounded-xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800/60 shadow-lg"
+          className="fit-surface overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800/60 shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/80 px-4 py-3">
             <span className="text-base font-semibold text-green-400">{t.Main.day} {idx + 1}</span>
@@ -53,24 +50,12 @@ export function WeeklyCards({
                         title={meal.name[lang]}
                       >
                         <span className="shrink-0 text-xl select-none">{meal.icon || "🍽️"}</span>
-                        {meal.link ? (
-                          <Link
-                            href={meal.link}
-                            className="min-w-0 flex-1 truncate hover:text-green-400 no-underline"
-                          >
-                            {meal.name[lang]}
-                          </Link>
-                        ) : (
                           <button
-                            onClick={() => {
-                              setSelectedMeal(meal);
-                              setShowModal(true);
-                            }}
+                            onClick={() => openMeal(idx, mealType, meal)}
                             className="min-w-0 flex-1 truncate text-left hover:text-green-400 focus:outline-none"
                           >
                             {meal.name[lang]}
                           </button>
-                        )}
                         {servings > 1 && (
                           <span
                             className="shrink-0 rounded-full bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-300"

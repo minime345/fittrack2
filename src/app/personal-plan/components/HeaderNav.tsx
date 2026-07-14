@@ -11,7 +11,7 @@ type HeaderNavProps = {
 
 export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavProps) {
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
+    <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         <Logo />
 
@@ -29,7 +29,7 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
           <button
             onClick={toggleLang}
             aria-label="Switch language"
-            className="px-3 py-1 border border-green-400 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
+            className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
           >
             {lang === "bg" ? "BG" : "EN"}
           </button>

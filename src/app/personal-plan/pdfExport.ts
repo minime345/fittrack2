@@ -74,8 +74,9 @@ export const downloadPDF = ({ t, weeklyPlan, goal, goalLabels, diet, dietLabels,
           doc.setFont("Roboto", "normal");
         }
         const text = `• ${meal.name[lang]} – ${meal.kcal} kcal, P: ${meal.protein}g, C: ${meal.carbs}g, F: ${meal.fat}g`;
+        const recipePath = meal.link || `/meals/${meal.slug}`;
         doc.textWithLink(text, 16, y, {
-          url: meal.link ? `https://yourdomain.com${meal.link}` : undefined,
+          url: `https://fittrack2-pi.vercel.app${recipePath}?portion=${meal.weight}`,
         });
         y += 6;
       });
