@@ -7,7 +7,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { translations, type Lang } from "@/lib/translations-plans";
 import { useLang } from "@/context/LangContext";
-import { Main } from "next/document";
 import { Analytics } from "@vercel/analytics/react";
 
 import type { Diet, ExcludedSource, Goal, PlanMealType, DayPlan } from "./types";
