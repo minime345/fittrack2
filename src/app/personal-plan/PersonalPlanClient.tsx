@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { meals } from "@/data/meals";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -28,10 +28,12 @@ import { ShoppingListSection } from "./components/ShoppingListSection";
 import { SiteFooter } from "./components/SiteFooter";
 import { MealModal } from "./components/MealModal";
 import { PlanOverview } from "./components/PlanOverview";
+import { PlanGuide } from "./components/PlanGuide";
 
 export default function PersonalPlanPage() {
   const searchParams = useSearchParams();
-  const baseCalories = Number(searchParams.get("calories")) || 2000;
+  const requestedCalories = Number(searchParams.get("calories")) || 2000;
+  const [baseCalories, setBaseCalories] = useState(requestedCalories);
  const currentYear = new Date().getFullYear();
 const [showShoppingList, setShowShoppingList] = useState(false);
 const [lang, setLang] = useState<Lang>("bg"); // default bg
@@ -64,11 +66,16 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
 
   const [weeklyPlan, setWeeklyPlan] = useState<DayPlan[]>([]);
   const [planStorageReady, setPlanStorageReady] = useState(false);
-  const restoredPlanRef = useRef(false);
+  const [generatedSettings, setGeneratedSettings] = useState<{
+    baseCalories: number;
+    goal: Goal;
+    diet: Diet;
+    excludedSources: ExcludedSource[];
+  } | null>(null);
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem("fittrack-active-plan-v1");
+      const raw = localStorage.getItem("fittrack-active-plan-v2");
       if (raw) {
         const saved = JSON.parse(raw) as {
           baseCalories: number;
@@ -78,21 +85,27 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
           weeklyPlan: DayPlan[];
           swapHistory?: Record<string, string[]>;
         };
-        if (saved.baseCalories === baseCalories && Array.isArray(saved.weeklyPlan) && saved.weeklyPlan.length === 7) {
+        if (Array.isArray(saved.weeklyPlan) && saved.weeklyPlan.length === 7) {
+          if (!searchParams.has("calories")) setBaseCalories(saved.baseCalories);
           setGoal(saved.goal);
           setDiet(saved.diet);
           setExcludedSources(saved.excludedSources || []);
           setWeeklyPlan(saved.weeklyPlan);
           setSwapHistory(saved.swapHistory || {});
-          restoredPlanRef.current = true;
+          setGeneratedSettings({
+            baseCalories: saved.baseCalories,
+            goal: saved.goal,
+            diet: saved.diet,
+            excludedSources: saved.excludedSources || [],
+          });
         }
       }
     } catch {
-      sessionStorage.removeItem("fittrack-active-plan-v1");
+      localStorage.removeItem("fittrack-active-plan-v2");
     } finally {
       setPlanStorageReady(true);
     }
-  }, [baseCalories]);
+  }, [searchParams]);
 
   const goalLabels: Record<Goal, string> = {
     maintain: t.Main.maintain,
@@ -149,12 +162,7 @@ useEffect(() => {
     document.body.style.overflow = "";
   };
 }, [showModal]);
-  useEffect(() => {
-  if (!planStorageReady) return;
-  if (restoredPlanRef.current) {
-    restoredPlanRef.current = false;
-    return;
-  }
+const regeneratePlan = () => {
   const dailyCalories = getTargetCalories(goal, baseCalories);
 
   // Филтриране по диета
@@ -168,22 +176,37 @@ useEffect(() => {
   );
 
   setWeeklyPlan(weekPlan);
-}, [baseCalories, goal, diet, excludedSources, planStorageReady]);
+  setSwapHistory({});
+  setGeneratedSettings({ baseCalories, goal, diet, excludedSources: [...excludedSources] });
+};
 
 useEffect(() => {
-  if (!planStorageReady || weeklyPlan.length !== 7) return;
-  sessionStorage.setItem("fittrack-active-plan-v1", JSON.stringify({
-    baseCalories,
-    goal,
-    diet,
-    excludedSources,
+  if (!planStorageReady || weeklyPlan.length === 7) return;
+  regeneratePlan();
+  // Initial generation only. Later preference changes wait for the button.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [planStorageReady]);
+
+useEffect(() => {
+  if (!planStorageReady || weeklyPlan.length !== 7 || !generatedSettings) return;
+  localStorage.setItem("fittrack-active-plan-v2", JSON.stringify({
+    ...generatedSettings,
     weeklyPlan,
     swapHistory,
   }));
-}, [baseCalories, goal, diet, excludedSources, weeklyPlan, swapHistory, planStorageReady]);
+}, [weeklyPlan, swapHistory, generatedSettings, planStorageReady]);
+
+const planNeedsRegeneration = Boolean(generatedSettings) && (
+  generatedSettings!.baseCalories !== baseCalories ||
+  generatedSettings!.goal !== goal ||
+  generatedSettings!.diet !== diet ||
+  JSON.stringify([...generatedSettings!.excludedSources].sort()) !== JSON.stringify([...excludedSources].sort())
+);
 
 const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) => {
-  const target = getTargetCalories(goal, baseCalories);
+  const target = generatedSettings
+    ? getTargetCalories(generatedSettings.goal, generatedSettings.baseCalories)
+    : getTargetCalories(goal, baseCalories);
   const day = weeklyPlan[dayIndex];
   const oldMeal = day?.meals[mealType].find((meal) => meal.slug === oldSlug);
   if (!day || !oldMeal) return;
@@ -232,7 +255,15 @@ const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) 
 };
 
 const handleDownloadPDF = () => {
-  downloadPDF({ t, weeklyPlan, goal, goalLabels, diet, dietLabels, lang });
+  downloadPDF({
+    t,
+    weeklyPlan,
+    goal: generatedSettings?.goal ?? goal,
+    goalLabels,
+    diet: generatedSettings?.diet ?? diet,
+    dietLabels,
+    lang,
+  });
 };
 
 const openMeal = (dayIndex: number, mealType: PlanMealType, meal: Meal) => {
@@ -269,6 +300,32 @@ const changeMealWeight = (weight: number) => {
     setExcludedSources={setExcludedSources} sourceOptions={sourceOptions}
     showExcludedOptions={showExcludedOptions} setShowExcludedOptions={setShowExcludedOptions}
   />
+  <PlanGuide lang={lang} hasCalculatedTarget={searchParams.has("calories")} />
+  <div className={`mb-6 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
+    planNeedsRegeneration
+      ? "border-amber-400/30 bg-amber-400/[0.06]"
+      : "border-green-500/15 bg-green-500/[0.04]"
+  }`}>
+    <div>
+      <p className={`text-sm font-semibold ${planNeedsRegeneration ? "text-amber-200" : "text-green-300"}`}>
+        {planNeedsRegeneration
+          ? (lang === "bg" ? "Има нови настройки, които още не са приложени" : "You have new settings that have not been applied")
+          : (lang === "bg" ? "Този план е запазен в браузъра" : "This plan is saved in your browser")}
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-gray-400">
+        {planNeedsRegeneration
+          ? (lang === "bg" ? "Сегашната седмица остава непроменена, докато не натиснеш бутона." : "Your current week stays unchanged until you select the button.")
+          : (lang === "bg" ? "Смяната на ястия и порции също се запазва автоматично." : "Meal replacements and portion changes are saved automatically too.")}
+      </p>
+    </div>
+    <button
+      type="button"
+      onClick={regeneratePlan}
+      className="fit-primary-button shrink-0 rounded-xl bg-green-500 px-5 py-2.5 text-sm font-bold text-black hover:bg-green-400"
+    >
+      ↻ {lang === "bg" ? "Генерирай нов план" : "Regenerate plan"}
+    </button>
+  </div>
   <div className="hidden">
   <motion.h1
     initial={{ opacity: 0, y: -10 }}
@@ -359,6 +416,19 @@ const changeMealWeight = (weight: number) => {
 
       {/* --- Десктоп: таблица с разграфяване --- */}
   </div>
+  <div id="weekly-plan" className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <h2 className="text-lg font-bold text-white sm:text-xl">
+      {lang === "bg" ? "Твоят седмичен план" : "Your weekly plan"}
+    </h2>
+    <div className="flex flex-wrap gap-2 text-[11px] text-gray-400">
+      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
+        {lang === "bg" ? "Натисни ястие за рецепта и порция" : "Select a meal for its recipe and portion"}
+      </span>
+      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
+        ↻ {lang === "bg" ? "сменя ястието" : "replaces the meal"}
+      </span>
+    </div>
+  </div>
   <WeeklyTable
     t={t}
     lang={lang}
@@ -382,13 +452,15 @@ const changeMealWeight = (weight: number) => {
 </section>
 
 {/* Бутоните долу */} 
-<footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4 items-center"> 
+<footer id="plan-actions" className="max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 gap-3 sm:grid-cols-2"> 
   <button onClick={handleDownloadPDF} 
-  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded shadow transition-colors w-full sm:w-auto" >
-     {t.Main.downloadPdf} 
+  className="fit-primary-button w-full rounded-xl bg-green-600 px-6 py-3 text-left text-white shadow transition-colors hover:bg-green-700" >
+     <span className="block font-semibold">{t.Main.downloadPdf}</span>
+     <span className="mt-0.5 block text-xs font-normal text-green-100/75">{lang === "bg" ? "Запази текущия план и рецептите" : "Save the current plan and recipes"}</span>
      </button> <button onClick={() => setShowShoppingList(!showShoppingList)}
-      className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded shadow transition-colors w-full sm:w-auto" >
-         {t.Main.shoppingListBtn} 
+      className="fit-secondary-button w-full rounded-xl border border-green-500/30 px-6 py-3 text-left text-white transition-colors" >
+         <span className="block font-semibold">{t.Main.shoppingListBtn}</span>
+         <span className="mt-0.5 block text-xs font-normal text-gray-400">{lang === "bg" ? "Количества за всички избрани порции" : "Quantities for all selected portions"}</span>
          </button> 
          </footer>
          <ShoppingListSection t={t} show={showShoppingList} items={generateShoppingList(weeklyPlan, lang)} />

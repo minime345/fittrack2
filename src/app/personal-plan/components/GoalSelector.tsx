@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import type { Goal } from "../types";
 
 const goalIcons: Record<Goal, string> = {
@@ -27,15 +26,12 @@ export function GoalSelector({ t, goal, goalLabels, setGoal }: GoalSelectorProps
               type="button"
               onClick={() => setGoal(key)}
               aria-pressed={active}
-              className="relative min-w-0 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-green-400 sm:py-2"
+              className={`relative min-w-0 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-green-400 sm:py-2 ${
+                active
+                  ? "bg-gradient-to-r from-green-400 to-teal-400 shadow-sm shadow-green-500/20"
+                  : "bg-transparent hover:bg-white/5"
+              }`}
             >
-              {active && (
-                <motion.span
-                  layoutId="goal-pill-bg"
-                  className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-400 to-teal-400"
-                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                />
-              )}
               <span className={`relative z-10 flex min-w-0 items-center justify-center gap-1.5 ${active ? "text-black" : "text-gray-300 hover:text-green-300"}`}>
                 <span aria-hidden="true">{goalIcons[key]}</span>
                 <span className="whitespace-normal text-center leading-tight">{label}</span>

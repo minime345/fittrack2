@@ -37,7 +37,7 @@ export function PlanOverview(props: Props) {
         </p>
         <h1 className="fit-title-gradient text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">{t.Main.heading}</h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0 sm:text-base">
-          {lang === "bg" ? "Настрой целта и предпочитанията си. Планът и списъкът за пазаруване се обновяват автоматично." : "Adjust your goal and preferences. Your plan and shopping list update automatically."}
+          {lang === "bg" ? "Настрой целта и предпочитанията си, а после генерирай нов план. Текущият план остава запазен дотогава." : "Adjust your goal and preferences, then regenerate. Your current plan stays saved until then."}
         </p>
       </motion.div>
 
