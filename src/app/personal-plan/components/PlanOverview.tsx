@@ -56,7 +56,9 @@ export function PlanOverview(props: Props) {
             </div>
             <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
               <p className="text-[10px] uppercase tracking-wider text-gray-500">{t.Main.goalLabel}</p>
-              <p className="mt-1 truncate font-semibold text-green-300">{goalLabels[goal]}</p>
+              <p className="mt-1 whitespace-normal break-words font-semibold leading-snug text-green-300">
+                {goalLabels[goal]}
+              </p>
             </div>
           </div>
           {baseCalories === 2000 && (

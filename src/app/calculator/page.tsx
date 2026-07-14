@@ -211,7 +211,7 @@ export default function Calculator() {
           type="button"
           onClick={() => setActivity(values[idx])}
           aria-pressed={isSelected}
-          className={`relative flex min-h-20 w-full flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 text-center transition ${
+          className={`relative flex min-h-28 w-full flex-col items-center justify-center gap-1.5 rounded-xl border px-2.5 py-3 text-center transition lg:min-h-40 ${
             isSelected
               ? "border-green-400 bg-green-500/10"
               : "border-white/15 bg-gray-950/50 hover:border-green-400/50 hover:bg-gray-800"
@@ -221,11 +221,11 @@ export default function Calculator() {
           <span className="min-w-0">
             <span className="block text-xs font-semibold leading-tight text-white sm:text-sm">{title}</span>
             {description && (
-              <span className="sr-only">{description}</span>
+              <span className="mt-1 block text-[10px] leading-snug text-gray-400 sm:text-[11px]">{description}</span>
             )}
           </span>
           <span
-            className={`absolute text-green-400 transition-opacity ${
+            className={`absolute right-2 top-2 text-green-400 transition-opacity ${
               isSelected ? "opacity-100" : "opacity-0"
             }`}
             aria-hidden="true"
