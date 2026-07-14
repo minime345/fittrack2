@@ -73,11 +73,11 @@ export function PlanOverview(props: Props) {
           </div>
           <div className="mt-6 border-t border-white/10 pt-5">
             <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">{t.Main.dietLabel}</label>
-            <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               {(Object.entries(dietLabels) as [Diet, string][]).map(([key, label]) => (
                 <button key={key} type="button" onClick={() => setDiet(key)} aria-pressed={diet === key}
-                  className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${diet === key ? "border-green-400/70 bg-green-500/15 text-green-200 shadow-[0_0_20px_rgba(34,197,94,0.08)]" : "border-white/10 bg-black/15 text-gray-300 hover:border-green-400/35 hover:bg-green-500/5"}`}>
-                  <span className="text-base">{dietIcons[key]}</span>{label}
+                  className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-medium transition sm:px-3 sm:py-2 sm:text-sm ${diet === key ? "border-green-400/70 bg-green-500/15 text-green-200 shadow-[0_0_20px_rgba(34,197,94,0.08)]" : "border-white/10 bg-black/15 text-gray-300 hover:border-green-400/35 hover:bg-green-500/5"}`}>
+                  <span className="text-base">{dietIcons[key]}</span><span className="truncate">{label}</span>
                 </button>
               ))}
             </div>

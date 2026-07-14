@@ -170,23 +170,23 @@ export default function Calculator() {
         )}
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        <div className="fit-surface bg-white/5 rounded-3xl shadow-xl backdrop-blur-md border border-white/10 p-5 sm:p-8">
-          <h1 className="fit-title-gradient text-3xl sm:text-4xl font-extrabold mb-8 text-center">{t.calculator.title}</h1>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <div className="fit-surface bg-gray-900/90 rounded-3xl shadow-2xl backdrop-blur-md border border-green-500/20 p-4 sm:p-7">
+          <h1 className="fit-title-gradient text-2xl sm:text-4xl font-extrabold mb-5 text-center">{t.calculator.title}</h1>
 
           <form
             onSubmit={(e) => {
               e.preventDefault();
               calculateCalories();
             }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
           >
             <InputField label={t.calculator.age} value={age} onChange={handleNumberChange(setAge)} min={10} max={100} step={1} />
             <InputField label={t.calculator.weight} value={weight} onChange={handleNumberChange(setWeight)} min={30} max={300} step={0.1} />
             <InputField label={t.calculator.height} value={height} onChange={handleNumberChange(setHeight)} min={100} max={230} step={0.1} />
 
             <div>
-              <label className="block mb-1 font-medium">{t.calculator.gender}</label>
+              <label className="block mb-1.5 text-sm font-semibold text-gray-100">{t.calculator.gender}</label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
@@ -198,8 +198,8 @@ export default function Calculator() {
             </div>
 
             <div className="sm:col-span-2">
-  <label className="block mb-2 font-medium">{t.calculator.activity}</label>
-  <div className="grid grid-cols-1 gap-2">
+  <label className="block mb-2 text-sm font-semibold text-gray-100">{t.calculator.activity}</label>
+  <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
     {t.calculator.activityOptions.map((label, idx) => {
       const values = [1.2, 1.375, 1.55, 1.725, 1.9]; // съответните коефициенти
       const icons = ["🛋️", "🚶", "🏃", "💪", "🔥"];
@@ -211,21 +211,21 @@ export default function Calculator() {
           type="button"
           onClick={() => setActivity(values[idx])}
           aria-pressed={isSelected}
-          className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
+          className={`relative flex min-h-20 w-full flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 text-center transition ${
             isSelected
               ? "border-green-400 bg-green-500/10"
-              : "border-white/10 bg-gray-800 hover:border-green-400/50 hover:bg-gray-700"
+              : "border-white/15 bg-gray-950/50 hover:border-green-400/50 hover:bg-gray-800"
           }`}
         >
-          <span className="shrink-0 text-2xl">{icons[idx]}</span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-semibold text-white">{title}</span>
+          <span className="shrink-0 text-xl">{icons[idx]}</span>
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold leading-tight text-white sm:text-sm">{title}</span>
             {description && (
-              <span className="block text-xs text-gray-400">{description}</span>
+              <span className="sr-only">{description}</span>
             )}
           </span>
           <span
-            className={`shrink-0 text-green-400 transition-opacity ${
+            className={`absolute text-green-400 transition-opacity ${
               isSelected ? "opacity-100" : "opacity-0"
             }`}
             aria-hidden="true"
@@ -252,7 +252,7 @@ export default function Calculator() {
 
             <button
               type="submit"
-              className="fit-primary-button sm:col-span-2 mt-4 w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-3.5 rounded-lg transition"
+              className="fit-primary-button w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-3 rounded-xl transition sm:self-end"
             >
               {t.calculator.calculate}
             </button>
@@ -261,7 +261,7 @@ export default function Calculator() {
           {result && (
             <div
               ref={resultRef}
-              className={`mt-10 bg-gray-900/60 px-4 sm:px-6 py-6 rounded-lg shadow-inner text-center space-y-4
+              className={`mt-6 border border-green-500/15 bg-gray-950/60 px-4 sm:px-6 py-5 rounded-2xl shadow-inner text-center space-y-3
                 transition-all duration-500 ease-out
                 ${showResult ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-5"}`}
             >
@@ -411,7 +411,7 @@ function InputField({
 }) {
   return (
     <div>
-      <label className="block mb-1 font-medium">{label}</label>
+      <label className="block mb-1.5 text-sm font-semibold text-gray-100">{label}</label>
       <input
         type="number"
         value={value}

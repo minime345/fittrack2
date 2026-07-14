@@ -6,6 +6,7 @@ import { Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { meals, type Meal } from "@/data/meals";
 import { mealDetails } from "@/data/meal-details";
+import { generatedMealRecipeSteps } from "@/data/meal-recipe-steps";
 import { translations } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
 import { scaleMeal } from "@/app/personal-plan/planLogic";
@@ -149,7 +150,7 @@ export function MealDetailPage({ slug }: { slug: string }) {
         <div>
           <h2 className="text-2xl font-semibold text-white mb-4">{t.meals.method}</h2>
           <ol className="list-decimal list-inside space-y-3 text-lg text-gray-200 leading-relaxed">
-            {(detail?.recipeSteps[lang] || baseMeal.recipeSteps?.[lang] || [baseMeal.recipe[lang]]).map((step, index) => <li key={index}>{step}</li>)}
+            {(detail?.recipeSteps[lang] || baseMeal.recipeSteps?.[lang] || generatedMealRecipeSteps[slug]?.[lang] || [baseMeal.recipe[lang]]).map((step, index) => <li key={index}>{step}</li>)}
           </ol>
         </div>
       </section>

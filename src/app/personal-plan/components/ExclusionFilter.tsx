@@ -30,13 +30,13 @@ export function ExclusionFilter({
   setShowExcludedOptions,
 }: ExclusionFilterProps) {
   return (
-    <div className="relative">
-      <span className="mb-1.5 block text-sm text-gray-200">{t.Main.meatFilterLabel}</span>
+    <div className="relative min-w-0">
+      <span className="mb-2 block text-sm font-medium text-gray-200">{t.Main.meatFilterLabel}</span>
       <button
         type="button"
         onClick={() => setShowExcludedOptions((open) => !open)}
         aria-expanded={showExcludedOptions}
-        className={`flex min-w-[220px] items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${
+        className={`flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${
           excludedSources.length
             ? "border-green-400 bg-green-500/10 text-green-200"
             : "border-green-500/30 bg-gray-900/60 text-gray-300 hover:border-green-400/60 hover:bg-gray-800"
@@ -70,7 +70,7 @@ export function ExclusionFilter({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-20 mt-2 grid w-[270px] grid-cols-2 gap-1.5 rounded-xl border border-green-500/30 bg-gray-900/95 p-3 shadow-xl backdrop-blur"
+            className="relative z-30 mt-2 grid w-full grid-cols-1 gap-1.5 rounded-xl border border-green-500/30 bg-gray-950/95 p-3 shadow-xl backdrop-blur sm:absolute sm:right-0 sm:w-[300px] sm:grid-cols-2"
           >
             {sourceOptions.map(({ source, label }) => {
               const active = excludedSources.includes(source);
@@ -84,7 +84,7 @@ export function ExclusionFilter({
                     )
                   }
                   aria-pressed={active}
-                  className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left text-xs font-medium transition ${
+                  className={`flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition ${
                     active
                       ? "border-green-400 bg-green-500/15 text-green-300"
                       : "border-white/10 bg-gray-800/60 text-gray-300 hover:border-green-400/40 hover:text-green-200"
