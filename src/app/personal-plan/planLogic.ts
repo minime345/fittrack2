@@ -85,7 +85,10 @@ const scaleGeneratedMeal = (meal: Meal, multiplier: number): Meal => {
   return scaleMeal(meal, Math.min(multiplier, maxWeight / meal.weight));
 };
 
-export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => {
+const snackLimitForTarget = (target: number) =>
+  target < 1600 ? 0 : target < 2300 ? 1 : target < 3000 ? 2 : target < 4000 ? 3 : 4;
+
+export const generateDayPlan = (pool: typeof meals, target: number, varyExtraMainMeals = false): DayPlan => {
   const byType = (type: PlanMealType) => pool.filter((meal) => meal.mealType.includes(type));
   const mainTypes: PlanMealType[] = ["breakfast", "lunch", "dinner"];
   if (!mainTypes.every((type) => byType(type).length > 0)) {
@@ -96,7 +99,7 @@ export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => 
   let bestDifference = Number.POSITIVE_INFINITY;
   // Higher targets can use more eating occasions, while ordinary plans keep
   // snacks limited and continue to prioritize proper meals.
-  const snackLimit = target < 1800 ? 0 : target < 3000 ? 1 : target < 4000 ? 2 : 3;
+  const snackLimit = snackLimitForTarget(target);
 
   for (let attempt = 0; attempt < 600; attempt += 1) {
     const selectedMeals: DayPlan["meals"] = { breakfast: [], lunch: [], dinner: [], snack: [] };
@@ -130,13 +133,24 @@ export const generateDayPlan = (pool: typeof meals, target: number): DayPlan => 
     // Add as many extra proper meals as the high target reasonably needs
     // (up to six distinct meals) before reaching for more snacks.
     const caloriesAfterMainMeals = calculateTotal(selectedMeals).kcal;
-    const extraMealLimit = Math.min(6, Math.max(0, Math.ceil((target - caloriesAfterMainMeals) / 600)));
+    // Normal calorie targets stay easy to follow: one breakfast, lunch and
+    // dinner, with snacks filling the remaining energy. Extra main meals are
+    // reserved for genuinely high-calorie plans.
+    const maxExtraMeals = target < 3000 ? 0 : target < 3500 ? 1 : target < 4500 ? 2 : 3;
+    const extraMealLimit = Math.min(maxExtraMeals, Math.max(0, Math.ceil((target - caloriesAfterMainMeals) / 600)));
     for (let extra = 0; extra < extraMealLimit; extra += 1) {
       const current = calculateTotal(selectedMeals);
       if (target - current.kcal < 350) break;
       // Fill the least-used main-meal slot first. This makes a second
       // breakfast possible instead of endlessly enlarging the first one.
-      const typesByUse = [...mainTypes].sort((a, b) => selectedMeals[a].length - selectedMeals[b].length);
+      const rotatingStart = varyExtraMainMeals ? (attempt + extra) % mainTypes.length : 1;
+      const extraMealPriority: PlanMealType[] = [
+        ...mainTypes.slice(rotatingStart),
+        ...mainTypes.slice(0, rotatingStart),
+      ];
+      const typesByUse = [...mainTypes].sort((a, b) =>
+        selectedMeals[a].length - selectedMeals[b].length || extraMealPriority.indexOf(a) - extraMealPriority.indexOf(b)
+      );
       const type = typesByUse.find((candidateType) =>
         pool.some((meal) => !used.has(meal.slug) && meal.mealType.includes(candidateType))
       );
@@ -238,7 +252,12 @@ export const generateWeekPlan = (pool: typeof meals, target: number, style: Plan
     const unusedPool = pool.filter((meal) => !used.has(meal.slug));
     const hasEveryMainType = (["breakfast", "lunch", "dinner"] as PlanMealType[])
       .every((type) => unusedPool.some((meal) => meal.mealType.includes(type)));
-    const day = generateDayPlan(hasEveryMainType ? unusedPool : pool, target);
+    const requiredSnacks = Math.min(
+      snackLimitForTarget(target),
+      pool.filter((meal) => meal.mealType.includes("snack")).length
+    );
+    const hasEnoughSnacks = unusedPool.filter((meal) => meal.mealType.includes("snack")).length >= requiredSnacks;
+    const day = generateDayPlan(hasEveryMainType && hasEnoughSnacks ? unusedPool : pool, target, true);
     Object.values(day.meals).flat().forEach((meal) => used.add(meal.slug));
     return day;
   });
@@ -296,7 +315,17 @@ export const groupMealPortions = (mealList: Meal[]) =>
     return grouped;
   }, []);
 
-export const shortLabel = (label: string) => label.replace(/:\s*$/, "");
+export const shortLabel = (label: string) => {
+  const cleanLabel = label.replace(/:\s*$/, "");
+  const compactLabels: Record<string, string> = {
+    "Протеин": "Прот.",
+    "Въглехидрати": "Въгл.",
+    "Мазнини": "Мазн.",
+    "Protein": "Prot.",
+    "Carbohydrates": "Carbs",
+  };
+  return compactLabels[cleanLabel] || cleanLabel;
+};
 
 export function generateShoppingList(weeklyPlan: DayPlan[], lang: "bg" | "en"): ShoppingIngredient[] {
   const ingredientMap = new Map<string, ShoppingIngredient>();

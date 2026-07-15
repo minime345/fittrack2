@@ -71,7 +71,7 @@ export function PlanOverview(props: Props) {
         </div>
 
         <div className="fit-surface rounded-3xl border border-white/10 p-5 sm:p-6">
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 xl:grid-cols-2">
             <GoalSelector t={t} goal={goal} goalLabels={goalLabels} setGoal={setGoal} />
             <ExclusionFilter t={t} excludedSources={excludedSources} setExcludedSources={setExcludedSources} sourceOptions={sourceOptions} showExcludedOptions={showExcludedOptions} setShowExcludedOptions={setShowExcludedOptions} />
           </div>

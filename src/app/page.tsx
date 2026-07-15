@@ -127,9 +127,6 @@ export default function Home() {
                 <Calculator className="h-4 w-4" />{c.secondary}
               </Link>
             </div>
-            <div className="mt-7 flex flex-wrap gap-2">
-              {[lang === "bg" ? "Запазва плана" : "Saves your plan", lang === "bg" ? "Адаптивни порции" : "Adaptive portions", lang === "bg" ? "BG и EN" : "BG and EN"].map((item) => <span key={item} className="fit-chip"><Check className="mr-1.5 h-3.5 w-3.5 text-green-400" />{item}</span>)}
-            </div>
         </div>
       </section>
 

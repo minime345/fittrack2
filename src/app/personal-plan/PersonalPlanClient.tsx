@@ -30,10 +30,27 @@ import { MealModal } from "./components/MealModal";
 import { PlanOverview } from "./components/PlanOverview";
 import { PlanGuide } from "./components/PlanGuide";
 
+const refreshSavedRecipeData = (savedPlan: DayPlan[]): DayPlan[] => savedPlan.map((day) => {
+  const refreshedMeals = Object.fromEntries(
+    Object.entries(day.meals).map(([mealType, dayMeals]) => [
+      mealType,
+      dayMeals.map((savedMeal) => {
+        const currentMeal = meals.find((meal) => meal.slug === savedMeal.slug);
+        if (!currentMeal) return savedMeal;
+        if (currentMeal.fixedPortion) return currentMeal;
+        return scaleMeal(currentMeal, savedMeal.weight / currentMeal.weight);
+      }),
+    ])
+  ) as DayPlan["meals"];
+
+  return { meals: refreshedMeals, total: calculateTotal(refreshedMeals) };
+});
+
 export default function PersonalPlanPage() {
   const searchParams = useSearchParams();
   const requestedCalories = Number(searchParams.get("calories")) || 2000;
   const [baseCalories, setBaseCalories] = useState(requestedCalories);
+  const [savedProteinRange, setSavedProteinRange] = useState<[number, number] | null>(null);
  const currentYear = new Date().getFullYear();
 const [showShoppingList, setShowShoppingList] = useState(false);
 const [lang, setLang] = useState<Lang>("bg"); // default bg
@@ -77,6 +94,21 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
 
   useEffect(() => {
     try {
+      let calculatorCalories: number | null = null;
+      const calculatorRaw = localStorage.getItem("fittrack-calculator-profile-v1");
+      if (calculatorRaw) {
+        const calculatorProfile = JSON.parse(calculatorRaw) as {
+          calories?: number | null;
+          proteinMin?: number | null;
+          proteinMax?: number | null;
+        };
+        if (Number.isFinite(calculatorProfile.calories)) calculatorCalories = calculatorProfile.calories!;
+        if (Number.isFinite(calculatorProfile.proteinMin) && Number.isFinite(calculatorProfile.proteinMax)) {
+          setSavedProteinRange([calculatorProfile.proteinMin!, calculatorProfile.proteinMax!]);
+        }
+      }
+
+      if (!searchParams.has("calories") && calculatorCalories !== null) setBaseCalories(calculatorCalories);
       const raw = localStorage.getItem("fittrack-active-plan-v2");
       if (raw) {
         const saved = JSON.parse(raw) as {
@@ -89,12 +121,12 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
           swapHistory?: Record<string, string[]>;
         };
         if (Array.isArray(saved.weeklyPlan) && saved.weeklyPlan.length === 7) {
-          if (!searchParams.has("calories")) setBaseCalories(saved.baseCalories);
+          if (!searchParams.has("calories") && calculatorCalories === null) setBaseCalories(saved.baseCalories);
           setGoal(saved.goal);
           setDiet(saved.diet);
           setPlanStyle(saved.planStyle || "diverse");
           setExcludedSources(saved.excludedSources || []);
-          setWeeklyPlan(saved.weeklyPlan);
+          setWeeklyPlan(refreshSavedRecipeData(saved.weeklyPlan));
           setSwapHistory(saved.swapHistory || {});
           setGeneratedSettings({
             baseCalories: saved.baseCalories,
@@ -150,8 +182,8 @@ const dietLabels: Record<Diet, string> = t.Main.diet;
     { source: "dairy", label: t.Main.meatOptions.noDairy },
   ];
 
-  const proteinMin = parseInt(searchParams.get("proteinMin") || "100", 10);
-  const proteinMax = parseInt(searchParams.get("proteinMax") || "150", 10);
+  const proteinMin = parseInt(searchParams.get("proteinMin") || String(savedProteinRange?.[0] ?? 100), 10);
+  const proteinMax = parseInt(searchParams.get("proteinMax") || String(savedProteinRange?.[1] ?? 150), 10);
 
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   const filterMeatFromPool = (mealsList: typeof meals): typeof meals => filterByMeatType(mealsList, excludedSources);

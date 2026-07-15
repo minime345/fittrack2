@@ -76,11 +76,13 @@ export const meals = [
       en: "Salad with lettuce, boiled egg, avocado, bacon and olive oil."
     },
     ingredients: [
-      { name: { bg: "маруля", en: "lettuce" }, amount: 50, unit: "g" },
-      { name: { bg: "яйца", en: "eggs" }, amount: 1, unit: "" },
       { name: { bg: "авокадо", en: "avocado" }, amount: 0.5, unit: "" },
-      { name: { bg: "бекон", en: "bacon" }, amount: 40, unit: "g" },
-      { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" }
+      { name: { bg: "яйца", en: "eggs" }, amount: 2, unit: "" },
+      { name: { bg: "бекон", en: "bacon" }, amount: 50, unit: "g" },
+      { name: { bg: "маруля", en: "lettuce" }, amount: 80, unit: "g" },
+      { name: { bg: "чери домати", en: "cherry tomatoes" }, amount: 50, unit: "g" },
+      { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" },
+      { name: { bg: "лимонов сок и сол", en: "lemon juice and salt" }, amount: 10, unit: "ml" }
     ],
     link: "/meals/keto-salad-egg-avocado",
     mealType: ["lunch"],
@@ -106,7 +108,10 @@ export const meals = [
     ingredients: [
       { name: { bg: "банан", en: "banana" }, amount: 1, unit: "" },
       { name: { bg: "веган протеин", en: "vegan protein" }, amount: 30, unit: "g" },
-      { name: { bg: "растително мляко", en: "plant milk" }, amount: 200, unit: "ml" }
+      { name: { bg: "растително мляко", en: "plant milk" }, amount: 250, unit: "ml" },
+      { name: { bg: "фъстъчено масло", en: "peanut butter" }, amount: 10, unit: "g" },
+      { name: { bg: "канела", en: "cinnamon" }, amount: 1, unit: "g" },
+      { name: { bg: "лед", en: "ice" }, amount: 4, unit: "" }
     ],
     link: "/meals/vegan-protein-shake",
     mealType: ["snack", "breakfast"],
@@ -130,9 +135,11 @@ export const meals = [
       en: "Fry beef with eggs and a little grated cheese."
     },
     ingredients: [
-      { name: { bg: "говеждо месо", en: "beef" }, amount: 150, unit: "g" },
+      { name: { bg: "говеждо месо", en: "beef" }, amount: 200, unit: "g" },
       { name: { bg: "яйца", en: "eggs" }, amount: 2, unit: "" },
-      { name: { bg: "сирене", en: "cheese" }, amount: 30, unit: "g" }
+      { name: { bg: "кашкавал или сирене", en: "yellow cheese or hard cheese" }, amount: 40, unit: "g" },
+      { name: { bg: "масло или зехтин", en: "butter or olive oil" }, amount: 5, unit: "g" },
+      { name: { bg: "подправки", en: "spices" }, amount: 5, unit: "g" }
     ],
     link: "/meals/beef-egg-cheese",
     mealType: ["dinner", "lunch"],
@@ -156,10 +163,13 @@ export const meals = [
       en: "Cook lentils with onion, carrots, tomato and spices."
     },
     ingredients: [
-      { name: { bg: "леща", en: "lentils" }, amount: 80, unit: "g" },
+      { name: { bg: "суха леща", en: "dry lentils" }, amount: 100, unit: "g" },
       { name: { bg: "морков", en: "carrot" }, amount: 1, unit: "" },
-      { name: { bg: "домати", en: "tomatoes" }, amount: 100, unit: "g" },
-      { name: { bg: "лук", en: "onion" }, amount: 0.5, unit: "" }
+      { name: { bg: "доматено пюре", en: "tomato puree" }, amount: 50, unit: "g" },
+      { name: { bg: "лук", en: "onion" }, amount: 0.5, unit: "" },
+      { name: { bg: "чесън", en: "garlic" }, amount: 1, unit: "" },
+      { name: { bg: "олио или зехтин", en: "vegetable oil or olive oil" }, amount: 10, unit: "g" },
+      { name: { bg: "подправки", en: "spices" }, amount: 5, unit: "g" }
     ],
     link: "/meals/lentil-stew",
     mealType: ["lunch"],
@@ -171,7 +181,7 @@ export const meals = [
   protein: 26,
   carbs: 5,
   fat: 24,
-  weight: 250,
+  weight: 300,
   categories: ["keto", "vegetarian", "balanced", "high-protein"],
   name: {
     bg: "Омлет с гъби и спанак",
@@ -182,9 +192,11 @@ export const meals = [
     en: "Cook an omelet with eggs, mushrooms and spinach."
   },
   ingredients: [
-    { name: { bg: "яйца", en: "eggs" }, amount: 2, unit: "" },
-    { name: { bg: "гъби", en: "mushrooms" }, amount: 50, unit: "g" },
-    { name: { bg: "спанак", en: "spinach" }, amount: 50, unit: "g" }
+    { name: { bg: "яйца", en: "eggs" }, amount: 3, unit: "" },
+    { name: { bg: "гъби", en: "mushrooms" }, amount: 100, unit: "g" },
+    { name: { bg: "спанак", en: "spinach" }, amount: 50, unit: "g" },
+    { name: { bg: "масло или зехтин", en: "butter or olive oil" }, amount: 10, unit: "g" },
+    { name: { bg: "сол и пипер", en: "salt and pepper" }, amount: 2, unit: "g" }
   ],
   link: "/meals/omelet-mushrooms-spinach",
   mealType: ["breakfast"],
@@ -208,9 +220,12 @@ export const meals = [
     en: "Bake salmon and serve with steamed broccoli and carrots."
   },
   ingredients: [
-    { name: { bg: "сьомга", en: "salmon" }, amount: 150, unit: "g" },
+    { name: { bg: "сьомга", en: "salmon" }, amount: 200, unit: "g" },
     { name: { bg: "броколи", en: "broccoli" }, amount: 100, unit: "g" },
-    { name: { bg: "морков", en: "carrot" }, amount: 1, unit: "" }
+    { name: { bg: "моркови", en: "carrots" }, amount: 50, unit: "g" },
+    { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" },
+    { name: { bg: "лимон", en: "lemon" }, amount: 20, unit: "g" },
+    { name: { bg: "сол и пипер", en: "salt and pepper" }, amount: 2, unit: "g" }
   ],
   link: "/meals/salmon-veggies",
   mealType: ["dinner", "lunch"],
@@ -235,8 +250,10 @@ export const meals = [
   },
   ingredients: [
     { name: { bg: "паста", en: "pasta" }, amount: 80, unit: "g" },
-    { name: { bg: "тофу", en: "tofu" }, amount: 100, unit: "g" },
-    { name: { bg: "доматен сос", en: "tomato sauce" }, amount: 100, unit: "ml" }
+    { name: { bg: "тофу", en: "tofu" }, amount: 150, unit: "g" },
+    { name: { bg: "доматен сос", en: "tomato sauce" }, amount: 100, unit: "ml" },
+    { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" },
+    { name: { bg: "чесън, босилек и риган", en: "garlic, basil and oregano" }, amount: 5, unit: "g" }
   ],
   link: "/meals/tofu-pasta",
   mealType: ["lunch"],
@@ -260,8 +277,11 @@ export const meals = [
     en: "Grill a beef steak and serve with green salad and olive oil."
   },
   ingredients: [
-    { name: { bg: "телешко месо", en: "beef" }, amount: 180, unit: "g" },
-    { name: { bg: "зелена салата", en: "green salad" }, amount: 50, unit: "g" }
+    { name: { bg: "телешки стек", en: "beef steak" }, amount: 200, unit: "g" },
+    { name: { bg: "микс зелена салата", en: "mixed greens" }, amount: 80, unit: "g" },
+    { name: { bg: "чери домати", en: "cherry tomatoes" }, amount: 50, unit: "g" },
+    { name: { bg: "зехтин", en: "olive oil" }, amount: 10, unit: "ml" },
+    { name: { bg: "балсамов оцет и подправки", en: "balsamic vinegar and spices" }, amount: 10, unit: "ml" }
   ],
   link: "/meals/beef-steak-salad",
   mealType: ["dinner", "lunch"],
@@ -286,8 +306,10 @@ export const meals = [
   },
   ingredients: [
     { name: { bg: "пилешко филе", en: "chicken fillet" }, amount: 150, unit: "g" },
-    { name: { bg: "ориз", en: "rice" }, amount: 60, unit: "g" },
-    { name: { bg: "броколи", en: "broccoli" }, amount: 100, unit: "g" }
+    { name: { bg: "ориз", en: "rice" }, amount: 70, unit: "g" },
+    { name: { bg: "броколи", en: "broccoli" }, amount: 150, unit: "g" },
+    { name: { bg: "зехтин или масло", en: "olive oil or butter" }, amount: 10, unit: "ml" },
+    { name: { bg: "чесън и подправки", en: "garlic and spices" }, amount: 5, unit: "g" }
   ],
   link: "/meals/chicken",
   mealType: ["lunch", "dinner"],

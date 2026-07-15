@@ -26,15 +26,15 @@ export function GoalSelector({ t, goal, goalLabels, setGoal }: GoalSelectorProps
               type="button"
               onClick={() => setGoal(key)}
               aria-pressed={active}
-              className={`relative min-w-0 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-green-400 sm:py-2 ${
+              className={`relative min-h-12 min-w-0 rounded-lg px-2 py-2.5 text-xs font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-green-400 sm:text-sm ${
                 active
                   ? "bg-gradient-to-r from-green-400 to-teal-400 shadow-sm shadow-green-500/20"
                   : "bg-transparent hover:bg-white/5"
               }`}
             >
-              <span className={`relative z-10 flex min-w-0 items-center justify-center gap-1.5 ${active ? "text-black" : "text-gray-300 hover:text-green-300"}`}>
-                <span aria-hidden="true">{goalIcons[key]}</span>
-                <span className="whitespace-normal text-center leading-tight">{label}</span>
+              <span className={`relative z-10 flex min-w-0 flex-col items-center justify-center gap-0.5 ${active ? "text-black" : "text-gray-300 hover:text-green-300"}`}>
+                <span className="shrink-0" aria-hidden="true">{goalIcons[key]}</span>
+                <span className="min-w-0 whitespace-normal text-center leading-tight">{label}</span>
               </span>
             </button>
           );

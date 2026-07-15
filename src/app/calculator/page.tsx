@@ -21,6 +21,30 @@ const getProteinRange = (weight: number, activity: number): [number, number] => 
   return [Math.round(weight * minimum), Math.round(weight * maximum)];
 };
 
+const calculateProfile = (
+  age: number | "",
+  weight: number | "",
+  height: number | "",
+  gender: string,
+  activity: number,
+  bodyFat: number | "" | null
+) => {
+  if (age === "" || weight === "" || height === "") return null;
+  if (Number(age) < 10 || Number(age) > 100 || Number(weight) < 30 || Number(weight) > 300 || Number(height) < 100 || Number(height) > 230) return null;
+
+  const hasValidBodyFat = bodyFat !== null && bodyFat !== "" && bodyFat > 0 && bodyFat < 100;
+  const bmr = hasValidBodyFat
+    ? 370 + 21.6 * Number(weight) * (1 - Number(bodyFat) / 100)
+    : gender === "male"
+      ? 10 * Number(weight) + 6.25 * Number(height) - 5 * Number(age) + 5
+      : 10 * Number(weight) + 6.25 * Number(height) - 5 * Number(age) - 161;
+
+  return {
+    calories: Math.round(bmr * activity),
+    proteinRange: getProteinRange(Number(weight), activity),
+  };
+};
+
 export default function Calculator() {
   const [isOpen, setIsOpen] = useState(false);
   const [lang, setLang] = useState<Lang>("bg"); // default bg
@@ -92,6 +116,7 @@ export default function Calculator() {
 
   useEffect(() => {
     if (!profileReady) return;
+    const currentProfile = calculateProfile(age, weight, height, gender, activity, bodyFat);
     localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify({
       age: age === "" ? null : Number(age),
       weight: weight === "" ? null : Number(weight),
@@ -99,10 +124,30 @@ export default function Calculator() {
       gender,
       activity,
       bodyFat: bodyFat === "" || bodyFat === null ? null : Number(bodyFat),
-      calories: result,
+      calories: currentProfile?.calories ?? null,
+      proteinMin: currentProfile?.proteinRange[0] ?? null,
+      proteinMax: currentProfile?.proteinRange[1] ?? null,
       updatedAt: Date.now(),
     }));
   }, [profileReady, age, weight, height, gender, activity, bodyFat, result]);
+
+  useEffect(() => {
+    if (!profileReady) return;
+    const timeout = window.setTimeout(() => {
+      const currentProfile = calculateProfile(age, weight, height, gender, activity, bodyFat);
+      if (!currentProfile) {
+        setResult(null);
+        setProteinRange(null);
+        setShowResult(false);
+        return;
+      }
+      setResult(currentProfile.calories);
+      setProteinRange(currentProfile.proteinRange);
+      setShowResult(true);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [profileReady, age, weight, height, gender, activity, bodyFat]);
 
   useEffect(() => {
     if (!result) return;
@@ -132,24 +177,11 @@ export default function Calculator() {
       return;
     }
 
-    let bmr;
-    if (bodyFat !== null && bodyFat !== "" && bodyFat > 0 && bodyFat < 100) {
-      const leanMass = Number(weight) * (1 - Number(bodyFat) / 100);
-      bmr = 370 + 21.6 * leanMass;
-      setUsedFormula(t.calculator.formulaKatch);
-    } else {
-      bmr =
-        gender === "male"
-          ? 10 * Number(weight) + 6.25 * Number(height) - 5 * Number(age) + 5
-          : 10 * Number(weight) + 6.25 * Number(height) - 5 * Number(age) - 161;
-      setUsedFormula(t.calculator.formulaMifflin);
-    }
-
-    const calories = bmr * activity;
-    const roundedCalories = Math.round(calories);
-    setResult(roundedCalories);
+    const currentProfile = calculateProfile(age, weight, height, gender, activity, bodyFat);
+    if (!currentProfile) return;
+    setResult(currentProfile.calories);
     // Protein needs rise with training intensity/volume (ISSN guidance: ~1.2-2.4 g/kg).
-    setProteinRange(getProteinRange(Number(weight), activity));
+    setProteinRange(currentProfile.proteinRange);
 
     setShowResult(false);
     setTimeout(() => setShowResult(true), 50);
