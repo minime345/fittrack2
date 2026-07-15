@@ -1,32 +1,20 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { Menu } from "lucide-react";
+import { ArrowLeft, ArrowRight, Scale, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { meals, type Meal } from "@/data/meals";
 import { mealDetails } from "@/data/meal-details";
 import { generatedMealRecipeSteps } from "@/data/meal-recipe-steps";
 import { translations } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
 import { scaleMeal } from "@/app/personal-plan/planLogic";
-import { SiteNavLink } from "@/components/SiteNavLink";
-
-function Logo() {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">F</div>
-      <span className="text-xl md:text-2xl font-bold tracking-wide text-white">FitTrack</span>
-    </div>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return <SiteNavLink href={href} label={label} />;
-}
+import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
+import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
 
 export function MealDetailPage({ slug }: { slug: string }) {
-  const baseMeal = meals.find((meal) => meal.slug === slug)! as Meal;
+  const baseMeal = meals.find((item) => item.slug === slug)! as Meal;
   const router = useRouter();
   const detail = mealDetails[slug];
   const [weight, setWeight] = useState(baseMeal.weight);
@@ -56,109 +44,75 @@ export function MealDetailPage({ slug }: { slug: string }) {
     localStorage.setItem("lang", next);
   };
 
+  const recipeSteps = detail?.recipeSteps[lang] || baseMeal.recipeSteps?.[lang] || generatedMealRecipeSteps[slug]?.[lang] || [baseMeal.recipe[lang]];
+
   return (
-    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <Logo />
-          <div className="flex items-center gap-6">
-            <nav className="hidden md:flex gap-5 lg:gap-7">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </nav>
-            <button onClick={toggleLang} aria-label="Switch language" className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium">
-              {lang === "bg" ? "BG" : "EN"}
-            </button>
-            <div className="md:hidden">
-              <button onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu"><Menu className="w-6 h-6 text-white" /></button>
+    <main className="fit-shell min-h-screen text-white">
+      <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
+
+      <section className="fit-page-hero pb-8">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => router.back()} className="fit-chip gap-2 hover:border-green-400/30 hover:text-green-300"><ArrowLeft className="h-3.5 w-3.5" />{lang === "bg" ? "Назад" : "Back"}</button>
+          <Link href="/meals" className="fit-chip hover:border-green-400/30 hover:text-green-300">{t.nav.meals}</Link>
+        </div>
+        <div className="mt-7 grid items-end gap-7 lg:grid-cols-[1fr_auto]">
+          <div className="flex items-start gap-4 sm:gap-5">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-green-500/10 text-4xl sm:h-20 sm:w-20 sm:text-5xl">{detail?.icon || baseMeal.icon}</span>
+            <div>
+              <p className="fit-eyebrow">{lang === "bg" ? "Рецепта с адаптивна порция" : "Recipe with an adaptive portion"}</p>
+              <h1 className="fit-title-gradient mt-2 text-3xl font-black tracking-tight sm:text-5xl">{detail?.name[lang] || baseMeal.name[lang]}</h1>
             </div>
           </div>
+          {!baseMeal.fixedPortion && <div className="fit-surface rounded-2xl p-4"><label className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500"><Scale className="h-4 w-4 text-green-400" />{t.meals.weight}</label><div className="flex items-center gap-2"><input type="number" min="50" max={baseMeal.weight * 3} step="50" value={meal.weight} onChange={(event) => changeWeight(Number(event.target.value))} aria-label={lang === "bg" ? "Тегло на порцията" : "Portion weight"} className="w-28 rounded-xl border border-green-500/30 bg-black/20 px-3 py-2 text-center text-xl font-black text-green-300 outline-none" /><span className="font-bold text-green-300">g</span></div></div>}
         </div>
-        {isOpen && (
-          <div className="md:hidden bg-black/80 px-6 pb-4">
-            <div className="flex flex-col gap-4">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </div>
-          </div>
-        )}
-      </header>
+      </section>
 
-      <section className="max-w-4xl mx-auto px-6 py-16">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-green-500/50 bg-gray-900/60 px-4 py-2 text-sm font-medium text-green-300 transition hover:bg-green-500 hover:text-black"
-        >
-          <span aria-hidden="true">←</span>
-          {lang === "bg" ? "Обратно към личния план" : "Back to personal plan"}
-        </button>
-        <div className="flex items-center gap-4 mb-8">
-          <span className="text-6xl">{detail?.icon || baseMeal.icon}</span>
-          <h1 className="fit-title-gradient text-4xl sm:text-5xl font-extrabold tracking-tight">{detail?.name[lang] || baseMeal.name[lang]}</h1>
+      <section className="fit-page-section pt-2">
+        <div className="fit-surface grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-white/5 sm:grid-cols-5">
+          <Nutrient value={meal.kcal} label={t.meals.cal} />
+          <Nutrient value={`${meal.protein} g`} label={t.meals.prot} />
+          <Nutrient value={`${meal.carbs} g`} label={t.meals.carb} />
+          <Nutrient value={`${meal.fat} g`} label={t.meals.fat} />
+          <Nutrient value={`${meal.weight} g`} label={t.meals.weight} />
         </div>
+      </section>
 
-        <div className="fit-surface grid grid-cols-2 sm:grid-cols-3 gap-6 bg-gray-800 p-6 rounded-3xl mb-10 text-center">
-          <div><div className="text-3xl font-bold text-green-400">{meal.kcal}</div><div className="text-sm text-gray-300">{t.meals.cal}</div></div>
-          <div><div className="text-3xl font-bold text-green-400">{meal.protein} g</div><div className="text-sm text-gray-300">{t.meals.prot}</div></div>
-          <div><div className="text-3xl font-bold text-green-400">{meal.carbs} g</div><div className="text-sm text-gray-300">{t.meals.carb}</div></div>
-          <div><div className="text-3xl font-bold text-green-400">{meal.fat} g</div><div className="text-sm text-gray-300">{t.meals.fat}</div></div>
-          <div>
-            {baseMeal.fixedPortion ? (
-              <div className="text-3xl font-bold text-green-400">{baseMeal.weight} g</div>
-            ) : (
-              <div className="flex items-center justify-center gap-1">
-                <input
-                  type="number"
-                  min="50"
-                  max={baseMeal.weight * 3}
-                  step="50"
-                  value={meal.weight}
-                  onChange={(event) => changeWeight(Number(event.target.value))}
-                  aria-label={lang === "bg" ? "Тегло на порцията" : "Portion weight"}
-                  className="w-28 rounded-lg border border-green-500/50 bg-gray-900 px-2 py-1 text-center text-2xl font-bold text-green-400 outline-none focus:border-green-400"
-                />
-                <span className="text-xl font-bold text-green-400">g</span>
-              </div>
-            )}
-            <div className="text-sm text-gray-300">{t.meals.weight}</div>
-          </div>
-        </div>
-
-        <div className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">{t.meals.ingredients}</h2>
-          <ul className="space-y-2">
+      <section className="fit-page-section grid gap-5 pt-3 lg:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <p className="fit-eyebrow">{lang === "bg" ? "Какво ти трябва" : "What you need"}</p>
+          <h2 className="fit-section-title">{t.meals.ingredients}</h2>
+          <ul className="mt-5 space-y-2">
             {meal.ingredients.map((ingredient, index) => (
-              <li key={`${ingredient.name[lang]}-${index}`} className="fit-surface bg-gray-800 p-4 rounded-2xl flex justify-between items-center gap-4 transition hover:border-green-400/25">
-                <div>
-                  <span className="text-green-400 font-bold">{ingredient.name[lang]}</span>
-                  {detail?.ingredients[index]?.substitute && (
-                    <span className="text-gray-400 text-sm block">{t.meals.substitute}: {detail.ingredients[index].substitute[lang]}</span>
-                  )}
-                </div>
-                <span className="text-gray-200 whitespace-nowrap font-semibold">{ingredient.amount} {ingredient.unit}</span>
+              <li key={`${ingredient.name[lang]}-${index}`} className="fit-surface flex items-center justify-between gap-4 rounded-2xl p-4">
+                <div><span className="font-bold text-white">{ingredient.name[lang]}</span>{detail?.ingredients[index]?.substitute && <span className="mt-1 block text-xs text-gray-500">{t.meals.substitute}: {detail.ingredients[index].substitute[lang]}</span>}</div>
+                <span className="whitespace-nowrap rounded-lg bg-green-500/10 px-2.5 py-1 text-sm font-bold text-green-300">{ingredient.amount} {ingredient.unit}</span>
               </li>
             ))}
           </ul>
         </div>
 
         <div>
-          <h2 className="text-2xl font-semibold text-white mb-4">{t.meals.method}</h2>
-          <ol className="list-decimal list-inside space-y-3 text-lg text-gray-200 leading-relaxed">
-            {(detail?.recipeSteps[lang] || baseMeal.recipeSteps?.[lang] || generatedMealRecipeSteps[slug]?.[lang] || [baseMeal.recipe[lang]]).map((step, index) => <li key={index}>{step}</li>)}
+          <p className="fit-eyebrow">{lang === "bg" ? "Стъпка по стъпка" : "Step by step"}</p>
+          <h2 className="fit-section-title">{t.meals.method}</h2>
+          <ol className="mt-5 space-y-3">
+            {recipeSteps.map((step, index) => <li key={`${index}-${step}`} className="fit-surface flex gap-4 rounded-2xl p-4 sm:p-5"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-xs font-black text-green-300">{index + 1}</span><p className="text-sm leading-7 text-gray-300">{step}</p></li>)}
           </ol>
         </div>
       </section>
+
+      <section className="fit-page-section pb-12">
+        <div className="rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-6 text-center sm:p-8">
+          <Sparkles className="mx-auto h-7 w-7 text-green-400" />
+          <h2 className="mt-3 text-2xl font-bold">{lang === "bg" ? "Добави ястието към персонална седмица" : "Use this meal in a personal week"}</h2>
+          <Link href="/personal-plan" className="fit-primary-button mt-5 inline-flex items-center gap-2 px-5 py-3 text-sm font-bold">{t.nav.personal}<ArrowRight className="h-4 w-4" /></Link>
+        </div>
+      </section>
+
+      <SiteFooter t={t} currentYear={new Date().getFullYear()} />
     </main>
   );
 }
 
-
+function Nutrient({ value, label }: { value: string | number; label: string }) {
+  return <div className="bg-gray-900/90 p-4 text-center sm:p-5"><p className="text-xl font-black text-green-300 sm:text-2xl">{value}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{label}</p></div>;
+}

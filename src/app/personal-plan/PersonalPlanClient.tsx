@@ -303,7 +303,7 @@ const changeMealWeight = (weight: number) => {
       <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
        <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
   <PlanOverview
     t={t} lang={lang} baseCalories={baseCalories} proteinMin={proteinMin} proteinMax={proteinMax}
     goal={goal} setGoal={setGoal} goalLabels={goalLabels} diet={diet} setDiet={setDiet}

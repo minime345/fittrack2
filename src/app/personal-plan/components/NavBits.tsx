@@ -11,6 +11,6 @@ export function Logo() {
   );
 }
 
-export function NavLink({ href, label }: { href: string; label: string }) {
-  return <SiteNavLink href={href} label={label} />;
+export function NavLink({ href, label, onNavigate }: { href: string; label: string; onNavigate?: () => void }) {
+  return <SiteNavLink href={href} label={label} onNavigate={onNavigate} />;
 }

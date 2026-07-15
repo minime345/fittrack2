@@ -1,269 +1,81 @@
-﻿"use client";
+"use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { translations } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
-import { SiteNavLink } from "@/components/SiteNavLink";
-import { Analytics } from "@vercel/analytics/react";
-
-function Logo() {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
-        F
-      </div>
-      <span className="text-xl md:text-2xl font-bold tracking-wide text-white">
-        FitTrack
-      </span>
-    </div>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return <SiteNavLink href={href} label={label} />;
-}
+import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
+import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
 
 export default function Plans() {
   const [isOpen, setIsOpen] = useState(false);
   const { lang, setLang } = useLang();
-  const currentYear = new Date().getFullYear();
-
-  // fallback Ð·Ð° ÐµÐ·Ð¸ÐºÐ°
   const t = translations[lang] || translations.bg;
 
   useEffect(() => {
     const saved = localStorage.getItem("lang");
-    if (saved === "en" || saved === "bg") {
-      setLang(saved);
-    }
+    if (saved === "en" || saved === "bg") setLang(saved);
   }, [setLang]);
 
   const toggleLang = () => {
-    const newLang = lang === "bg" ? "en" : "bg";
-    setLang(newLang);
-    localStorage.setItem("lang", newLang);
+    const next = lang === "bg" ? "en" : "bg";
+    setLang(next);
+    localStorage.setItem("lang", next);
   };
 
   return (
-    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      {/* Navigation */}
-      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <Logo />
-      
-          <div className="flex items-center gap-6">
-            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
-            <nav className="hidden md:flex gap-5 lg:gap-7">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </nav>
-      
-            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº */}
-            <button
-              onClick={toggleLang}
-              aria-label="Switch language"
-              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 rounded-lg hover:bg-green-500 hover:text-black transition text-sm font-medium"
-            >
-              {lang === "bg" ? "BG" : "EN"}
-            </button>
-      
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
-                <Menu className="w-6 h-6 text-white" />
-              </button>
-            </div>
-          </div>
-        </div>
-      
-        {/* Mobile menu */}
-        {isOpen && (
-          <div className="md:hidden bg-black/80 px-6 pb-4">
-            <div className="flex flex-col gap-4">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </div>
-          </div>
-        )}
-      </header>
-      
-      {/* Ð—Ð°Ð³Ð»Ð°Ð²Ð¸Ðµ */}
-      <section className="max-w-6xl mx-auto px-6 py-20 text-center">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="fit-title-gradient text-4xl md:text-6xl font-extrabold tracking-tight mb-6"
-        >
+    <main className="fit-shell min-h-screen text-white">
+      <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
+
+      <section className="fit-page-hero pb-10 text-center">
+        <p className="fit-eyebrow">{lang === "bg" ? "Подходи към храненето" : "Nutrition approaches"}</p>
+        <motion.h1 initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="fit-title-gradient mt-4 text-4xl font-black tracking-tight sm:text-5xl md:text-6xl">
           {t.plansPage.header.title}
         </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto"
-        >
+        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-gray-300 sm:text-lg">
           {t.plansPage.header.subtitle}
         </motion.p>
       </section>
 
-      {/* ÐšÐ°Ñ€Ñ‚Ð¸ */}
-      <section className="max-w-6xl mx-auto px-6 pb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-        {t.plansPage.diets.map((plan, index) => (
-          <motion.div
-            key={plan.name}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Link
-              href={plan.href}
-              className="fit-surface relative block rounded-3xl overflow-hidden group shadow-lg hover:-translate-y-1 hover:border-green-400/30 hover:shadow-2xl transition"
-            >
-              <Image
-                src={plan.image}
-                alt={plan.name}
-                width={400}
-                height={250}
-                className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur p-4">
-                <h2 className="text-lg font-semibold text-green-400">{plan.name}</h2>
-                <p className="text-gray-300 text-sm">{plan.description}</p>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+      <section className="fit-page-section pt-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {t.plansPage.diets.map((plan, index) => (
+            <motion.div key={plan.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}>
+              <Link href={plan.href} className="fit-surface fit-card-interactive group block h-full overflow-hidden rounded-3xl">
+                <div className="relative h-52 overflow-hidden">
+                  <Image src={plan.image} alt={plan.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/15 to-transparent" />
+                </div>
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-green-400">{lang === "bg" ? "Ръководство" : "Guide"}</p>
+                      <h2 className="mt-1 text-xl font-bold text-white">{plan.name}</h2>
+                    </div>
+                    <ArrowRight className="mt-1 h-4 w-4 text-green-400 transition group-hover:translate-x-1" />
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-400">{plan.description}</p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
-      {/* CTA */}
-      <section className="text-center pb-24">
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-gray-300 mb-4"
-        >
-          {t.plansPage.cta.question}
-        </motion.p>
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Link
-            href="/personal-plan"
-            className="fit-primary-button inline-block bg-green-500 text-black font-bold py-3.5 px-7 rounded-xl hover:bg-green-400 transition"
-          >
-            {t.plansPage.cta.button}
-          </Link>
-        </motion.div>
+      <section className="fit-page-section pb-14">
+        <div className="rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-7 text-center sm:p-9">
+          <Sparkles className="mx-auto h-7 w-7 text-green-400" />
+          <h2 className="mt-3 text-2xl font-bold">{t.plansPage.cta.question}</h2>
+          <Link href="/personal-plan" className="fit-primary-button mt-5 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold">{t.plansPage.cta.button}<ArrowRight className="h-4 w-4" /></Link>
+        </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12 mt-12 border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.contacts}</h3>
-            <p>
-              Email:{" "}
-              <a href="mailto:fittrackwebsite@gmail.com" className="text-green-400 hover:underline">
-                fittrackwebsite@gmail.com
-              </a>
-            </p>
-            <p>
-              {t.footer.phone}{" "}
-              <a href="tel:+359887183887" className="text-green-400 hover:underline">
-                +359 887 183 887
-              </a>
-            </p>
-            <p>{t.footer.address}</p>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.quick}</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/calculator" className="hover:text-green-400">
-                  {t.nav.calculator}
-                </Link>
-              </li>
-              <li>
-                <Link href="/plans" className="hover:text-green-400">
-                  {t.nav.plans}
-                </Link>
-              </li>
-              <li>
-                <Link href="/meals" className="hover:text-green-400">
-                  {t.nav.meals}
-                </Link>
-              </li>
-              <li>
-                <Link href="/personal-plan" className="hover:text-green-400">
-                  {t.nav.personal}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.follow}</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="https://www.facebook.com/share/1GT8Ey98Re/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.instagram.com/semetoitsmaname"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.youtube.com/yourchannel"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  YouTube
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
-        </div>
-      </footer>
-
-      {/* Vercel Analytics */}
+      <SiteFooter t={t} currentYear={new Date().getFullYear()} />
       <Analytics />
     </main>
   );
 }
-
-

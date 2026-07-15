@@ -1,308 +1,119 @@
-﻿"use client";
+"use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { meals } from "@/data/meals";
+import { ArrowRight, Flame, Search, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { Menu } from "lucide-react";
-import { translations, type Lang } from "@/lib/translations";
-import { useLang } from "@/context/LangContext";
-import { SiteNavLink } from "@/components/SiteNavLink";
+import { useEffect, useMemo, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { meals } from "@/data/meals";
+import { translations } from "@/lib/translations";
+import { useLang } from "@/context/LangContext";
+import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
+import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
 
 const categories = ["all", "vegan", "keto", "balanced", "high-protein", "high-carb", "carnivore"];
 const mealsPerPage = 6;
 
-function Logo() {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
-        F
-      </div>
-      <span className="text-xl md:text-2xl font-bold tracking-wide text-white">FitTrack</span>
-    </div>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return <SiteNavLink href={href} label={label} />;
-}
-
 export default function MealsPage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [visibleMealsCount, setVisibleMealsCount] = useState(mealsPerPage);
+  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [lang, setLang] = useState<Lang>("bg"); // default bg
-  const currentYear = new Date().getFullYear();
+  const { lang, setLang } = useLang();
+  const t = translations[lang] || translations.bg;
 
   useEffect(() => {
     const saved = localStorage.getItem("lang");
-    if (saved === "en" || saved === "bg") {
-      setLang(saved);
-    }
-  }, []);
+    if (saved === "en" || saved === "bg") setLang(saved);
+  }, [setLang]);
 
   const toggleLang = () => {
-    const newLang = lang === "bg" ? "en" : "bg";
-    setLang(newLang);
-    localStorage.setItem("lang", newLang);
+    const next = lang === "bg" ? "en" : "bg";
+    setLang(next);
+    localStorage.setItem("lang", next);
   };
 
-  // ÐŸÑ€ÐµÐ²Ð¾Ð´Ð¸
-  const t = translations[lang] || translations.bg;
-
-  const filteredMeals =
-    activeCategory === "all"
-      ? meals
-      : meals.filter(meal => meal.categories.includes(activeCategory));
-
+  const filteredMeals = useMemo(() => meals.filter((meal) => {
+    const categoryMatch = activeCategory === "all" || meal.categories.includes(activeCategory);
+    const text = `${meal.name.bg} ${meal.name.en} ${meal.categories.join(" ")}`.toLowerCase();
+    return categoryMatch && text.includes(query.trim().toLowerCase());
+  }), [activeCategory, query]);
   const visibleMeals = filteredMeals.slice(0, visibleMealsCount);
 
-  const handleLoadMore = () => {
-    setVisibleMealsCount(prev => prev + mealsPerPage);
-  };
-
   return (
-    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ */}
-      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <Logo />
+    <main className="fit-shell min-h-screen text-white">
+      <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
-          <div className="flex items-center gap-6">
-            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
-            <nav className="hidden md:flex gap-5 lg:gap-7">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </nav>
-
-            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº */}
-            <button
-              onClick={toggleLang}
-              aria-label="Switch language"
-              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 hover:bg-green-500 hover:text-black transition text-sm font-medium"
-            >
-              {lang === "bg" ? "BG" : "EN"}
-            </button>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
-                <Menu className="w-6 h-6 text-white" />
-              </button>
+      <section className="fit-page-hero pb-8">
+        <div className="grid items-end gap-7 lg:grid-cols-[1fr_0.72fr]">
+          <div>
+            <p className="fit-eyebrow">{lang === "bg" ? "Библиотека с готови ястия" : "Ready-to-use meal library"}</p>
+            <h1 className="fit-title-gradient mt-4 text-4xl font-black tracking-tight sm:text-5xl md:text-6xl">{t.meals.hed}</h1>
+          </div>
+          <div className="fit-surface rounded-2xl p-4">
+            <label htmlFor="meal-search" className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">{lang === "bg" ? "Търси ястие" : "Find a meal"}</label>
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3">
+              <Search className="h-4 w-4 text-green-400" />
+              <input id="meal-search" value={query} onChange={(event) => { setQuery(event.target.value); setVisibleMealsCount(mealsPerPage); }} placeholder={lang === "bg" ? "Име или категория…" : "Name or category…"} className="w-full bg-transparent py-3 text-sm text-white outline-none placeholder:text-gray-600" />
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Mobile menu */}
-        {isOpen && (
-          <div className="md:hidden bg-black/80 px-6 pb-4">
-            <div className="flex flex-col gap-4">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* Ð¡ÐµÐºÑ†Ð¸Ñ: Ð¯ÑÑ‚Ð¸Ñ */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="fit-title-gradient text-4xl sm:text-5xl font-extrabold tracking-tight mb-10 text-center"
-        >
-          {t.meals.hed}
-        </motion.h1>
-
-        {/* ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ */}
-        <div className="flex flex-wrap justify-center gap-4 mb-10">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => {
-                setActiveCategory(cat);
-                setVisibleMealsCount(mealsPerPage);
-              }}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                activeCategory === cat
-                  ? "bg-green-500 text-black"
-                  : "bg-gray-700 hover:bg-gray-600 text-white"
-              }`}
-            >
-              {cat === "all" ? t.meals.all 
-                : cat.charAt(0).toUpperCase() + cat.slice(1)}
+      <section className="fit-page-section pt-2">
+        <div className="mb-7 flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <button key={category} onClick={() => { setActiveCategory(category); setVisibleMealsCount(mealsPerPage); }} className={`rounded-full border px-4 py-2 text-xs font-bold transition ${activeCategory === category ? "border-green-400 bg-green-500 text-black" : "border-white/10 bg-gray-900/60 text-gray-300 hover:border-green-400/30 hover:text-green-300"}`}>
+              {category === "all" ? t.meals.all : category.replace("-", " ")}
             </button>
           ))}
         </div>
 
-        {/* ÐšÐ°Ñ€Ñ‚Ð¸ Ñ ÑÑÑ‚Ð¸Ñ */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {visibleMeals.map((meal, i) => (
-            <motion.div
-              key={meal.slug}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="fit-surface group bg-gray-900/60 hover:-translate-y-1 hover:border-green-400/30 hover:bg-gray-800/80 transition rounded-3xl p-6 shadow-xl border border-white/10 backdrop-blur"
-            >
-              {true ? (
-                <Link href={meal.link || `/meals/${meal.slug}`} className="block h-full">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="text-4xl">{meal.icon}</div>
-                    <h2 className="text-xl font-bold text-green-400">{meal.name[lang]}</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleMeals.map((meal, index) => (
+            <motion.div key={meal.slug} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.035 }}>
+              <Link href={meal.link || `/meals/${meal.slug}`} className="fit-surface fit-card-interactive group flex h-full flex-col rounded-3xl p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-500/10 text-3xl">{meal.icon}</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-green-400">{meal.categories[0]?.replace("-", " ")}</p>
+                      <h2 className="mt-1 text-lg font-bold leading-tight text-white">{meal.name[lang]}</h2>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-300 mb-2">
-                    <div><span className="font-semibold text-white">{t.meals.cal}:</span> {meal.kcal}</div>
-                    <div><span className="font-semibold text-white">{t.meals.prot}:</span> {meal.protein} {t.meals.unit}</div>
-                    <div><span className="font-semibold text-white">{t.meals.carb}:</span> {meal.carbs} {t.meals.unit}</div>
-                    <div><span className="font-semibold text-white">{t.meals.fat}:</span> {meal.fat} {t.meals.unit}</div>
-                  </div>
-                  <div className="text-xs text-gray-400 italic">
-                    {t.meals.category}: {meal.categories.join(", ")}
-                  </div>
-                </Link>
-              ) : (
-                <div className="block h-full cursor-default">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="text-4xl">{meal.icon}</div>
-                    <h2 className="text-xl font-bold text-green-400">{meal.name[lang]}</h2>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-300 mb-2">
-                    <div><span className="font-semibold text-white">{t.meals.cal}:</span> {meal.kcal}</div>
-                    <div><span className="font-semibold text-white">{t.meals.prot}:</span> {meal.protein} {t.meals.unit}</div>
-                    <div><span className="font-semibold text-white">{t.meals.carb}:</span> {meal.carbs} {t.meals.unit}</div>
-                    <div><span className="font-semibold text-white">{t.meals.fat}:</span> {meal.fat} {t.meals.unit}</div>
-                  </div>
-                  <div className="text-xs text-gray-400 italic mb-2">
-                    {t.meals.category}: {meal.categories.join(", ")}
-                  </div>
-                  <div className="text-sm text-white mt-2 whitespace-pre-wrap">
-                    <span className="font-semibold text-green-400">
-                      {lang === "bg" ? "Рецепта:" : "Recipe:"}
-                    </span>{" "}
-                    {meal.recipe[lang]}
-                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-green-400 transition group-hover:translate-x-1" />
                 </div>
-              )}
+                <div className="mt-5 grid grid-cols-4 gap-2 text-center">
+                  <Macro value={meal.kcal} label="kcal" highlight />
+                  <Macro value={meal.protein} label="P" />
+                  <Macro value={meal.carbs} label="C" />
+                  <Macro value={meal.fat} label="F" />
+                </div>
+                <p className="mt-4 line-clamp-2 text-xs leading-relaxed text-gray-500">{meal.recipe[lang]}</p>
+              </Link>
             </motion.div>
           ))}
         </div>
 
-        {/* Ð‘ÑƒÑ‚Ð¾Ð½ "Ð—Ð°Ñ€ÐµÐ´Ð¸ Ð¾Ñ‰Ðµ" */}
-        {visibleMealsCount < filteredMeals.length && (
-          <div className="flex justify-center mt-12">
-            <button
-              onClick={handleLoadMore}
-              className="bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-3 rounded-full transition"
-            >
-              {t.meals.button}
-            </button>
-          </div>
-        )}
+        {visibleMeals.length === 0 && <div className="fit-surface rounded-3xl p-10 text-center"><p className="text-lg font-bold">{lang === "bg" ? "Няма намерени ястия" : "No meals found"}</p><p className="mt-2 text-sm text-gray-400">{lang === "bg" ? "Опитай с друга дума или категория." : "Try another word or category."}</p></div>}
+
+        {visibleMealsCount < filteredMeals.length && <div className="mt-10 text-center"><button onClick={() => setVisibleMealsCount((count) => count + mealsPerPage)} className="fit-secondary-button px-6 py-3 text-sm font-bold text-green-300">{t.meals.button}</button></div>}
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12 mt-12 border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.contacts}</h3>
-            <p>
-              Email:{" "}
-              <a href="mailto:fittrackwebsite@gmail.com" className="text-green-400 hover:underline">
-                fittrackwebsite@gmail.com
-              </a>
-            </p>
-            <p>
-              {t.footer.phone}{" "}
-              <a href="tel:+359887183887" className="text-green-400 hover:underline">
-                +359 887 183 887
-              </a>
-            </p>
-            <p>{t.footer.address}</p>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.quick}</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/calculator" className="hover:text-green-400">
-                  {t.nav.calculator}
-                </Link>
-              </li>
-              <li>
-                <Link href="/plans" className="hover:text-green-400">
-                  {t.nav.plans}
-                </Link>
-              </li>
-              <li>
-                <Link href="/meals" className="hover:text-green-400">
-                  {t.nav.meals}
-                </Link>
-              </li>
-              <li>
-                <Link href="/personal-plan" className="hover:text-green-400">
-                  {t.nav.personal}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.follow}</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="https://www.facebook.com/share/1GT8Ey98Re/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.instagram.com/semetoitsmaname"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.youtube.com/yourchannel"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  YouTube
-                </a>
-              </li>
-            </ul>
-          </div>
+      <section className="fit-page-section pb-14">
+        <div className="rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-7 text-center sm:p-9">
+          <Sparkles className="mx-auto h-7 w-7 text-green-400" />
+          <h2 className="mt-3 text-2xl font-bold">{lang === "bg" ? "Превърни рецептите в цяла седмица" : "Turn recipes into a complete week"}</h2>
+          <Link href="/personal-plan" className="fit-primary-button mt-5 inline-flex items-center gap-2 px-5 py-3 text-sm font-bold"><Flame className="h-4 w-4" />{t.nav.personal}</Link>
         </div>
+      </section>
 
-        <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
-        </div>
-      </footer>
-
-      {/* Vercel Analytics */}
+      <SiteFooter t={t} currentYear={new Date().getFullYear()} />
       <Analytics />
     </main>
   );
 }
 
-
+function Macro({ value, label, highlight = false }: { value: number; label: string; highlight?: boolean }) {
+  return <div className="rounded-xl border border-white/5 bg-black/15 p-2"><p className={`text-sm font-black ${highlight ? "text-green-300" : "text-white"}`}>{value}</p><p className="text-[9px] uppercase tracking-wide text-gray-600">{label}</p></div>;
+}

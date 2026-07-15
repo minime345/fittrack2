@@ -3,26 +3,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu } from "lucide-react";
 import { translations, type Lang } from "@/lib/translations";
-import { SiteNavLink } from "@/components/SiteNavLink";
-import { useLang } from "@/context/LangContext";
 import { Analytics } from "@vercel/analytics/react";
-
-function Logo() {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="fit-logo-mark w-10 h-10 bg-gradient-to-tr from-green-400 to-lime-500 rounded-xl flex items-center justify-center text-black font-bold text-lg shadow-md">
-        F
-      </div>
-      <span className="text-xl md:text-2xl font-bold tracking-wide text-white">FitTrack</span>
-    </div>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return <SiteNavLink href={href} label={label} />;
-}
+import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
+import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
 
 const proteinFactorsByActivity: Record<number, [number, number]> = {
   1.2: [1.2, 1.6],
@@ -175,56 +159,13 @@ export default function Calculator() {
     }, 100);
   };
   return (
-    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
-      <header className="fit-header sticky top-0 z-50 backdrop-blur-md bg-white/5 border-b border-white/10 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <Logo />
-      
-          <div className="flex items-center gap-6">
-            {/* ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ Ð·Ð° Ð´ÐµÑÐºÑ‚Ð¾Ð¿ */}
-            <nav className="hidden md:flex gap-5 lg:gap-7">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </nav>
-      
-            {/* Ð‘ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÑÐ¼ÑÐ½Ð° Ð½Ð° ÐµÐ·Ð¸Ðº â€“ Ð¾ÑÑ‚Ð°Ð²Ð° ÑÐ°Ð¼Ð¾ ÐµÐ´Ð¸Ð½ Ð¿ÑŠÑ‚ */}
-            <button
-              onClick={toggleLang}
-              aria-label="Switch language"
-              className="fit-language px-3 py-1.5 border border-green-400/70 text-green-400 hover:bg-green-500 hover:text-black transition text-sm font-medium"
-            >
-              {lang === "bg" ? "BG" : "EN"}
-            </button>
-      
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
-                <Menu className="w-6 h-6 text-white" />
-              </button>
-            </div>
-          </div>
-        </div>
-      
-        {/* Mobile menu â€“ Ð±ÐµÐ· Ð±ÑƒÑ‚Ð¾Ð½ Ð·Ð° ÐµÐ·Ð¸Ðº Ð²ÑŠÑ‚Ñ€Ðµ */}
-        {isOpen && (
-          <div className="md:hidden bg-black/80 px-6 pb-4">
-            <div className="flex flex-col gap-4">
-              <NavLink href="/" label={t.nav.home} />
-              <NavLink href="/calculator" label={t.nav.calculator} />
-              <NavLink href="/personal-plan" label={t.nav.personal} />
-              <NavLink href="/plans" label={t.nav.plans} />
-              <NavLink href="/workouts" label={t.nav.workouts} />
-              <NavLink href="/meals" label={t.nav.meals} />
-            </div>
-          </div>
-        )}
-      </header>
+    <main className="fit-shell min-h-screen text-white">
+      <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mb-7 text-center">
+          <p className="fit-eyebrow">{lang === "bg" ? "Твоите изходни данни" : "Your starting point"}</p>
+        </div>
         <div className="fit-surface bg-gray-900/90 rounded-3xl shadow-2xl backdrop-blur-md border border-green-500/20 p-4 sm:p-7">
           <h1 className="fit-title-gradient text-2xl sm:text-4xl font-extrabold mb-5 text-center">{t.calculator.title}</h1>
 
@@ -359,93 +300,7 @@ export default function Calculator() {
           )}
         </div>
       </div>
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12 mt-12 border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.contacts}</h3>
-            <p>
-              Email:{" "}
-              <a href="mailto:fittrackwebsite@gmail.com" className="text-green-400 hover:underline">
-                fittrackwebsite@gmail.com
-              </a>
-            </p>
-            <p>
-              {t.footer.phone}{" "}
-              <a href="tel:+359887183887" className="text-green-400 hover:underline">
-                +359 887 183 887
-              </a>
-            </p>
-            <p>{t.footer.address}</p>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.quick}</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/calculator" className="hover:text-green-400">
-                  {t.nav.calculator}
-                </Link>
-              </li>
-              <li>
-                <Link href="/plans" className="hover:text-green-400">
-                  {t.nav.plans}
-                </Link>
-              </li>
-              <li>
-                <Link href="/meals" className="hover:text-green-400">
-                  {t.nav.meals}
-                </Link>
-              </li>
-              <li>
-                <Link href="/personal-plan" className="hover:text-green-400">
-                  {t.nav.personal}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.footer.follow}</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="https://www.facebook.com/share/1GT8Ey98Re/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.instagram.com/semetoitsmaname"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.youtube.com/yourchannel"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-green-400"
-                >
-                  YouTube
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="text-center mt-10 text-sm text-gray-500">
-          © {currentYear} FitTrack. {t.footer.rights}
-        </div>
-      </footer>
+      <SiteFooter t={t} currentYear={currentYear} />
 
       {/* Vercel Analytics */}
       <Analytics />
