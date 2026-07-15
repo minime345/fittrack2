@@ -13,15 +13,23 @@ const LangContext = createContext<LangContextProps>({
 });
 
 export const LangProvider = ({ children }: { children: ReactNode }) => {
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === "undefined") return "bg";
-    const saved = localStorage.getItem("fittrack_lang");
-    return saved === "en" || saved === "bg" ? saved : "bg";
-  });
+  // Keep the server and the first client render identical. The saved
+  // preference is applied immediately after hydration.
+  const [lang, setLang] = useState<Lang>("bg");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    const saved = localStorage.getItem("lang") || localStorage.getItem("fittrack_lang");
+    if (saved === "en" || saved === "bg") setLang(saved);
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem("lang", lang);
     localStorage.setItem("fittrack_lang", lang);
-  }, [lang]);
+    document.documentElement.lang = lang;
+  }, [hydrated, lang]);
 
   return (
     <LangContext.Provider value={{ lang, setLang }}>

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { translations, type Lang } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
+import { SiteNavLink } from "@/components/SiteNavLink";
 import { Analytics } from "@vercel/analytics/react";
 
 const categories = ["all", "vegan", "keto", "balanced", "high-protein", "high-carb", "carnivore"];
@@ -24,14 +25,7 @@ function Logo() {
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {label}
-    </Link>
-  );
+  return <SiteNavLink href={href} label={label} />;
 }
 
 export default function MealsPage() {
@@ -194,7 +188,7 @@ export default function MealsPage() {
                   </div>
                   <div className="text-sm text-white mt-2 whitespace-pre-wrap">
                     <span className="font-semibold text-green-400">
-                      {lang === "bg" ? "Ð ÐµÑ†ÐµÐ¿Ñ‚Ð°:" : "Recipe:"}
+                      {lang === "bg" ? "Рецепта:" : "Recipe:"}
                     </span>{" "}
                     {meal.recipe[lang]}
                   </div>
@@ -301,7 +295,7 @@ export default function MealsPage() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          Â© {currentYear} FitTrack. {t.footer.rights}
+          © {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 

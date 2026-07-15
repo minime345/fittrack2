@@ -113,8 +113,8 @@ export const translations = {
     meals:{
       all:"Всички",
       hed:"Всички Ястия",
-      cal:"Калорий",
-      prot:"Пеотеин",
+      cal:"Калории",
+      prot:"Протеин",
       carb:"Въглехидрати",
       fat:"Мазнини",
       category:"Категории",

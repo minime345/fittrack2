@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -59,7 +59,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
   const [showExcludedOptions, setShowExcludedOptions] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Новите стейтове за модалния прозорец
+  // ÐÐ¾Ð²Ð¸Ñ‚Ðµ ÑÑ‚ÐµÐ¹Ñ‚Ð¾Ð²Ðµ Ð·Ð° Ð¼Ð¾Ð´Ð°Ð»Ð½Ð¸Ñ Ð¿Ñ€Ð¾Ð·Ð¾Ñ€ÐµÑ†
   const [showModal, setShowModal] = useState(false);
 
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
@@ -153,7 +153,7 @@ const dietLabels: Record<Diet, string> = t.Main.diet;
   const proteinMin = parseInt(searchParams.get("proteinMin") || "100", 10);
   const proteinMax = parseInt(searchParams.get("proteinMax") || "150", 10);
 
-  // Филтриране по месо
+  // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   const filterMeatFromPool = (mealsList: typeof meals): typeof meals => filterByMeatType(mealsList, excludedSources);
 
 useEffect(() => {
@@ -170,12 +170,12 @@ useEffect(() => {
 const regeneratePlan = () => {
   const dailyCalories = getTargetCalories(goal, baseCalories);
 
-  // Филтриране по диета
+  // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð´Ð¸ÐµÑ‚Ð°
   let filtered = diet === "all" ? meals : meals.filter((m) => m.categories.includes(diet));
-  // Филтриране по месо
+  // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   filtered = filterMeatFromPool(filtered);
 
-  // Генериране на 7-дневен план
+  // Ð“ÐµÐ½ÐµÑ€Ð¸Ñ€Ð°Ð½Ðµ Ð½Ð° 7-Ð´Ð½ÐµÐ²ÐµÐ½ Ð¿Ð»Ð°Ð½
   const weekPlan = generateWeekPlan(filtered, dailyCalories, planStyle);
 
   setWeeklyPlan(weekPlan);
@@ -425,7 +425,7 @@ const changeMealWeight = (weight: number) => {
 
 
 
-      {/* --- Десктоп: таблица с разграфяване --- */}
+      {/* --- Ð”ÐµÑÐºÑ‚Ð¾Ð¿: Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ð° Ñ Ñ€Ð°Ð·Ð³Ñ€Ð°Ñ„ÑÐ²Ð°Ð½Ðµ --- */}
   </div>
   <div id="weekly-plan" className="mb-3 flex flex-wrap items-center justify-between gap-2">
     <h2 className="text-lg font-bold text-white sm:text-xl">
@@ -449,7 +449,7 @@ const changeMealWeight = (weight: number) => {
     replaceMeal={replaceMeal}
   />
 
-{/* --- Мобилна версия: карти по дни --- */}
+{/* --- ÐœÐ¾Ð±Ð¸Ð»Ð½Ð° Ð²ÐµÑ€ÑÐ¸Ñ: ÐºÐ°Ñ€Ñ‚Ð¸ Ð¿Ð¾ Ð´Ð½Ð¸ --- */}
 <WeeklyCards
   t={t}
   lang={lang}
@@ -462,7 +462,7 @@ const changeMealWeight = (weight: number) => {
 
 </section>
 
-{/* Бутоните долу */} 
+{/* Ð‘ÑƒÑ‚Ð¾Ð½Ð¸Ñ‚Ðµ Ð´Ð¾Ð»Ñƒ */} 
 <footer id="plan-actions" className="max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 gap-3 sm:grid-cols-2"> 
   <button onClick={handleDownloadPDF} 
   className="fit-primary-button w-full rounded-xl bg-green-600 px-6 py-3 text-left text-white shadow transition-colors hover:bg-green-700" >
@@ -482,7 +482,7 @@ const changeMealWeight = (weight: number) => {
            onClose={() => setShowShoppingList(false)}
          />
 
-      {/* Footer секция */}
+      {/* Footer ÑÐµÐºÑ†Ð¸Ñ */}
 {/* Footer */}
       <SiteFooter t={t} currentYear={currentYear} />
       <MealModal t={t} lang={lang} showModal={showModal} selectedMeal={selectedMeal} setShowModal={setShowModal} onWeightChange={changeMealWeight} />
@@ -491,3 +491,4 @@ const changeMealWeight = (weight: number) => {
     </main>
   );
 }
+

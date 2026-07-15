@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import { translations } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
+import { SiteNavLink } from "@/components/SiteNavLink";
 
 function Logo() {
   return (
@@ -19,14 +20,7 @@ function Logo() {
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {label}
-    </Link>
-  );
+  return <SiteNavLink href={href} label={label} />;
 }
 
 export default function MediterraneanPage() {
@@ -179,7 +173,7 @@ export default function MediterraneanPage() {
             </ul>
           </div>
           <div className="text-center md:text-right">
-            <p>Â© {currentYear} FitTrack. {t.footer.rights}</p>
+            <p>© {currentYear} FitTrack. {t.footer.rights}</p>
           </div>
         </div>
       </footer>

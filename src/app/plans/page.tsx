@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { translations } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
+import { SiteNavLink } from "@/components/SiteNavLink";
 import { Analytics } from "@vercel/analytics/react";
 
 function Logo() {
@@ -23,14 +24,7 @@ function Logo() {
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {label}
-    </Link>
-  );
+  return <SiteNavLink href={href} label={label} />;
 }
 
 export default function Plans() {
@@ -262,7 +256,7 @@ export default function Plans() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          Â© {currentYear} FitTrack. {t.footer.rights}
+          © {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 

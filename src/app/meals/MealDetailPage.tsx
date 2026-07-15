@@ -10,6 +10,7 @@ import { generatedMealRecipeSteps } from "@/data/meal-recipe-steps";
 import { translations } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
 import { scaleMeal } from "@/app/personal-plan/planLogic";
+import { SiteNavLink } from "@/components/SiteNavLink";
 
 function Logo() {
   return (
@@ -21,7 +22,7 @@ function Logo() {
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
-  return <Link href={href} className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium">{label}</Link>;
+  return <SiteNavLink href={href} label={label} />;
 }
 
 export function MealDetailPage({ slug }: { slug: string }) {
@@ -97,8 +98,8 @@ export function MealDetailPage({ slug }: { slug: string }) {
           onClick={() => router.back()}
           className="mb-6 inline-flex items-center gap-2 rounded-lg border border-green-500/50 bg-gray-900/60 px-4 py-2 text-sm font-medium text-green-300 transition hover:bg-green-500 hover:text-black"
         >
-          <span aria-hidden="true">â†</span>
-          {lang === "bg" ? "ÐžÐ±Ñ€Ð°Ñ‚Ð½Ð¾ ÐºÑŠÐ¼ Ð»Ð¸Ñ‡Ð½Ð¸Ñ Ð¿Ð»Ð°Ð½" : "Back to personal plan"}
+          <span aria-hidden="true">←</span>
+          {lang === "bg" ? "Обратно към личния план" : "Back to personal plan"}
         </button>
         <div className="flex items-center gap-4 mb-8">
           <span className="text-6xl">{detail?.icon || baseMeal.icon}</span>
@@ -122,7 +123,7 @@ export function MealDetailPage({ slug }: { slug: string }) {
                   step="50"
                   value={meal.weight}
                   onChange={(event) => changeWeight(Number(event.target.value))}
-                  aria-label={lang === "bg" ? "Ð¢ÐµÐ³Ð»Ð¾ Ð½Ð° Ð¿Ð¾Ñ€Ñ†Ð¸ÑÑ‚Ð°" : "Portion weight"}
+                  aria-label={lang === "bg" ? "Тегло на порцията" : "Portion weight"}
                   className="w-28 rounded-lg border border-green-500/50 bg-gray-900 px-2 py-1 text-center text-2xl font-bold text-green-400 outline-none focus:border-green-400"
                 />
                 <span className="text-xl font-bold text-green-400">g</span>

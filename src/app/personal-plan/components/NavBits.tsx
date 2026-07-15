@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteNavLink } from "@/components/SiteNavLink";
 
 export function Logo() {
   return (
@@ -12,12 +12,5 @@ export function Logo() {
 }
 
 export function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {label}
-    </Link>
-  );
+  return <SiteNavLink href={href} label={label} />;
 }

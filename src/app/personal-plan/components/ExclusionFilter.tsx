@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+﻿import { AnimatePresence, motion } from "framer-motion";
 import type { ExcludedSource } from "../types";
 
 const excludeIcons: Record<ExcludedSource, string> = {
@@ -101,3 +101,4 @@ export function ExclusionFilter({
     </div>
   );
 }
+

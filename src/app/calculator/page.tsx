@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { translations, type Lang } from "@/lib/translations";
+import { SiteNavLink } from "@/components/SiteNavLink";
 import { useLang } from "@/context/LangContext";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -20,15 +21,21 @@ function Logo() {
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {label}
-    </Link>
-  );
+  return <SiteNavLink href={href} label={label} />;
 }
+
+const proteinFactorsByActivity: Record<number, [number, number]> = {
+  1.2: [1.2, 1.6],
+  1.375: [1.4, 1.8],
+  1.55: [1.6, 2.0],
+  1.725: [1.8, 2.2],
+  1.9: [2.0, 2.4],
+};
+
+const getProteinRange = (weight: number, activity: number): [number, number] => {
+  const [minimum, maximum] = proteinFactorsByActivity[activity] ?? [1.6, 2.2];
+  return [Math.round(weight * minimum), Math.round(weight * maximum)];
+};
 
 export default function Calculator() {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,6 +50,7 @@ export default function Calculator() {
   const [usedFormula, setUsedFormula] = useState<string>("");
   const [proteinRange, setProteinRange] = useState<[number, number] | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [profileReady, setProfileReady] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const router = useRouter();
@@ -64,6 +72,60 @@ export default function Calculator() {
 
   // ÐŸÑ€ÐµÐ²Ð¾Ð´Ð¸
   const t = translations[lang] || translations.bg;
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("fittrack-calculator-profile-v1");
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        age?: number;
+        weight?: number;
+        height?: number;
+        gender?: string;
+        activity?: number;
+        bodyFat?: number | null;
+        calories?: number | null;
+      };
+      if (Number.isFinite(saved.age)) setAge(saved.age!);
+      if (Number.isFinite(saved.weight)) setWeight(saved.weight!);
+      if (Number.isFinite(saved.height)) setHeight(saved.height!);
+      if (saved.gender === "male" || saved.gender === "female") setGender(saved.gender);
+      if (Number.isFinite(saved.activity)) setActivity(saved.activity!);
+      setBodyFat(saved.bodyFat ?? null);
+      if (Number.isFinite(saved.calories)) {
+        setResult(saved.calories!);
+        setShowResult(true);
+      }
+      if (Number.isFinite(saved.weight) && Number.isFinite(saved.activity)) {
+        setProteinRange(getProteinRange(saved.weight!, saved.activity!));
+      }
+    } catch {
+      localStorage.removeItem("fittrack-calculator-profile-v1");
+    } finally {
+      setProfileReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!profileReady) return;
+    localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify({
+      age: age === "" ? null : Number(age),
+      weight: weight === "" ? null : Number(weight),
+      height: height === "" ? null : Number(height),
+      gender,
+      activity,
+      bodyFat: bodyFat === "" || bodyFat === null ? null : Number(bodyFat),
+      calories: result,
+      updatedAt: Date.now(),
+    }));
+  }, [profileReady, age, weight, height, gender, activity, bodyFat, result]);
+
+  useEffect(() => {
+    if (!result) return;
+    setUsedFormula(bodyFat !== null && bodyFat !== "" && bodyFat > 0 && bodyFat < 100
+      ? t.calculator.formulaKatch
+      : t.calculator.formulaMifflin);
+  }, [lang, result, bodyFat, t.calculator.formulaKatch, t.calculator.formulaMifflin]);
 
   const handleNumberChange =
     (setter: (val: number | "") => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,29 +164,8 @@ export default function Calculator() {
     const calories = bmr * activity;
     const roundedCalories = Math.round(calories);
     setResult(roundedCalories);
-    localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify({
-      age: Number(age),
-      weight: Number(weight),
-      height: Number(height),
-      gender,
-      activity,
-      bodyFat: bodyFat === "" || bodyFat === null ? null : Number(bodyFat),
-      calories: roundedCalories,
-      updatedAt: Date.now(),
-    }));
-
     // Protein needs rise with training intensity/volume (ISSN guidance: ~1.2-2.4 g/kg).
-    const proteinFactorsByActivity: Record<number, [number, number]> = {
-      1.2: [1.2, 1.6],
-      1.375: [1.4, 1.8],
-      1.55: [1.6, 2.0],
-      1.725: [1.8, 2.2],
-      1.9: [2.0, 2.4],
-    };
-    const [proteinFactorMin, proteinFactorMax] = proteinFactorsByActivity[activity] ?? [1.6, 2.2];
-    const proteinMin = Number(weight) * proteinFactorMin;
-    const proteinMax = Number(weight) * proteinFactorMax;
-    setProteinRange([Math.round(proteinMin), Math.round(proteinMax)]);
+    setProteinRange(getProteinRange(Number(weight), activity));
 
     setShowResult(false);
     setTimeout(() => setShowResult(true), 50);
@@ -194,6 +235,7 @@ export default function Calculator() {
             }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
           >
+            <fieldset disabled={!profileReady} className="contents">
             <InputField label={t.calculator.age} value={age} onChange={handleNumberChange(setAge)} min={10} max={100} step={1} />
             <InputField label={t.calculator.weight} value={weight} onChange={handleNumberChange(setWeight)} min={30} max={300} step={0.1} />
             <InputField label={t.calculator.height} value={height} onChange={handleNumberChange(setHeight)} min={100} max={230} step={0.1} />
@@ -215,8 +257,8 @@ export default function Calculator() {
   <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
     {t.calculator.activityOptions.map((label, idx) => {
       const values = [1.2, 1.375, 1.55, 1.725, 1.9]; // ÑÑŠÐ¾Ñ‚Ð²ÐµÑ‚Ð½Ð¸Ñ‚Ðµ ÐºÐ¾ÐµÑ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚Ð¸
-      const icons = ["ðŸ›‹ï¸", "ðŸš¶", "ðŸƒ", "ðŸ’ª", "ðŸ”¥"];
-      const [title, description] = label.split(" â€” ");
+      const icons = ["🛋️", "🚶", "🏃", "💪", "🔥"];
+      const [title, description] = label.split(" — ");
       const isSelected = activity === values[idx];
       return (
         <button
@@ -243,7 +285,7 @@ export default function Calculator() {
             }`}
             aria-hidden="true"
           >
-            âœ“
+            ✓
           </span>
         </button>
       );
@@ -269,6 +311,7 @@ export default function Calculator() {
             >
               {t.calculator.calculate}
             </button>
+            </fieldset>
           </form>
 
           {result && (
@@ -400,7 +443,7 @@ export default function Calculator() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          Â© {currentYear} FitTrack. {t.footer.rights}
+          © {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 

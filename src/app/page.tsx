@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { MotionH1 } from "@/components/motion/MotionH1";
 import { MotionP } from "@/components/motion/MotionP";
 import { MotionDiv } from "@/components/motion/MotionDiv";
+import { SiteNavLink } from "@/components/SiteNavLink";
 
 import { translations, type Lang } from "@/lib/translations";
 import { useLang } from "@/context/LangContext";
@@ -26,14 +27,7 @@ function Logo() {
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="fit-nav-link text-gray-300 hover:text-green-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {label}
-    </Link>
-  );
+  return <SiteNavLink href={href} label={label} />;
 }
 
 export default function Home() {
@@ -248,7 +242,7 @@ export default function Home() {
         </div>
 
         <div className="text-center mt-10 text-sm text-gray-500">
-          Â© {currentYear} FitTrack. {t.footer.rights}
+          © {currentYear} FitTrack. {t.footer.rights}
         </div>
       </footer>
 

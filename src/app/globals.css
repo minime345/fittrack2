@@ -188,6 +188,7 @@
     transition: right 180ms ease;
   }
   .fit-nav-link:hover::after { right: 0; }
+  .fit-nav-link[aria-current="page"]::after { right: 0; }
   .fit-language {
     min-width: 3rem;
     border-radius: 999px;

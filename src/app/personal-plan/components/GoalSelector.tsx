@@ -1,4 +1,4 @@
-import type { Goal } from "../types";
+﻿import type { Goal } from "../types";
 
 const goalIcons: Record<Goal, string> = {
   maintain: "⚖️",
@@ -43,3 +43,4 @@ export function GoalSelector({ t, goal, goalLabels, setGoal }: GoalSelectorProps
     </div>
   );
 }
+
