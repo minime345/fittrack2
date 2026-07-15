@@ -8,178 +8,263 @@ import { translations } from "@/lib/translations";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
 import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
 
-type Goal = "maintain" | "lose" | "gain";
 type LocalText = { bg: string; en: string };
-type WorkoutDay = { day: LocalText; focus: LocalText; exercises: LocalText[] };
-type WorkoutPlan = {
+type Goal = "maintain" | "lose" | "gain";
+type Experience = "beginner" | "intermediate" | "advanced";
+type Equipment = "gym" | "dumbbells" | "home" | "bodyweight";
+type ExerciseId =
+  | "squat" | "hinge" | "push" | "pull" | "verticalPush" | "verticalPull"
+  | "lunge" | "glutes" | "core" | "carry" | "arms" | "shoulders"
+  | "calves" | "cardio" | "intervals" | "mobility";
+
+type ExerciseTemplate = { id: ExerciseId; prescription: string };
+type SessionTemplate = { focus: LocalText; exercises: ExerciseTemplate[] };
+type Program = {
   id: string;
   icon: string;
   name: LocalText;
   summary: LocalText;
-  daysPerWeek: number;
-  duration: string;
   level: LocalText;
-  schedule: WorkoutDay[];
+  days: number[];
+  duration: [number, number];
+  goals: Goal[];
+  experience: Experience[];
+  equipment: Equipment[];
+  sessions: SessionTemplate[];
 };
 
-type CalculatorProfile = {
-  age: number;
-  weight: number;
-  height: number;
-  activity: number;
-  calories: number;
+type TrainingPreferences = {
+  goal: Goal;
+  experience: Experience;
+  days: number;
+  minutes: number;
+  equipment: Equipment;
 };
 
-const plans: WorkoutPlan[] = [
+type CalculatorProfile = { activity?: number; age?: number; calories?: number };
+
+const text = (bg: string, en: string): LocalText => ({ bg, en });
+const ex = (id: ExerciseId, prescription: string): ExerciseTemplate => ({ id, prescription });
+
+const exerciseNames: Record<ExerciseId, Record<Equipment, LocalText>> = {
+  squat: {
+    gym: text("Клек с щанга", "Barbell squat"), dumbbells: text("Гоблет клек", "Goblet squat"),
+    home: text("Клек с ластик или дъмбел", "Band or dumbbell squat"), bodyweight: text("Бавен клек със собствено тегло", "Tempo bodyweight squat"),
+  },
+  hinge: {
+    gym: text("Румънска тяга", "Romanian deadlift"), dumbbells: text("Румънска тяга с дъмбели", "Dumbbell Romanian deadlift"),
+    home: text("Тяга с дъмбели или ластик", "Band or dumbbell deadlift"), bodyweight: text("Едностранно навеждане", "Single-leg hip hinge"),
+  },
+  push: {
+    gym: text("Лежанка", "Bench press"), dumbbells: text("Лежанка с дъмбели", "Dumbbell bench press"),
+    home: text("Лицеви опори или преса на пода", "Push-up or floor press"), bodyweight: text("Лицеви опори", "Push-ups"),
+  },
+  pull: {
+    gym: text("Гребане на скрипец", "Cable row"), dumbbells: text("Гребане с дъмбел", "Dumbbell row"),
+    home: text("Гребане с ластик", "Band row"), bodyweight: text("Обратно гребане", "Inverted row"),
+  },
+  verticalPush: {
+    gym: text("Раменна преса", "Overhead press"), dumbbells: text("Раменна преса с дъмбели", "Dumbbell overhead press"),
+    home: text("Раменна преса с ластик", "Band overhead press"), bodyweight: text("Пайк лицеви опори", "Pike push-ups"),
+  },
+  verticalPull: {
+    gym: text("Скрипец пред гърди", "Lat pulldown"), dumbbells: text("Пулоувър с дъмбел", "Dumbbell pullover"),
+    home: text("Вертикално дърпане с ластик", "Band pulldown"), bodyweight: text("Набирания с помощ", "Assisted pull-ups"),
+  },
+  lunge: {
+    gym: text("Български клек", "Bulgarian split squat"), dumbbells: text("Напади с дъмбели", "Dumbbell lunges"),
+    home: text("Обратни напади", "Reverse lunges"), bodyweight: text("Обратни напади", "Reverse lunges"),
+  },
+  glutes: {
+    gym: text("Хип тръст", "Hip thrust"), dumbbells: text("Глутеус мост с дъмбел", "Dumbbell glute bridge"),
+    home: text("Глутеус мост с ластик", "Band glute bridge"), bodyweight: text("Едностранен глутеус мост", "Single-leg glute bridge"),
+  },
+  core: {
+    gym: text("Коремна преса на скрипец", "Cable crunch"), dumbbells: text("Фермерски планк", "Dumbbell plank drag"),
+    home: text("Dead bug", "Dead bug"), bodyweight: text("Планк", "Plank"),
+  },
+  carry: {
+    gym: text("Фермерска разходка", "Farmer carry"), dumbbells: text("Фермерска разходка", "Farmer carry"),
+    home: text("Носене на тежести", "Loaded carry"), bodyweight: text("Мечешко ходене", "Bear crawl"),
+  },
+  arms: {
+    gym: text("Бицепс и трицепс на скрипец", "Cable curl and pressdown"), dumbbells: text("Бицепс и трицепс с дъмбели", "Dumbbell curl and extension"),
+    home: text("Бицепс и трицепс с ластик", "Band curl and extension"), bodyweight: text("Тесни лицеви опори", "Close-grip push-ups"),
+  },
+  shoulders: {
+    gym: text("Странично рамо на скрипец", "Cable lateral raise"), dumbbells: text("Странично рамо с дъмбели", "Dumbbell lateral raise"),
+    home: text("Странично рамо с ластик", "Band lateral raise"), bodyweight: text("Задържане в стойка до стена", "Wall handstand hold"),
+  },
+  calves: {
+    gym: text("Повдигане за прасец", "Calf raise"), dumbbells: text("Прасец с дъмбели", "Dumbbell calf raise"),
+    home: text("Едностранен прасец", "Single-leg calf raise"), bodyweight: text("Едностранен прасец", "Single-leg calf raise"),
+  },
+  cardio: {
+    gym: text("Кардио в разговорно темпо", "Conversational-pace cardio"), dumbbells: text("Бързо ходене", "Brisk walk"),
+    home: text("Бързо ходене или колело", "Brisk walk or cycling"), bodyweight: text("Бързо ходене", "Brisk walk"),
+  },
+  intervals: {
+    gym: text("Интервали на пътека или колело", "Treadmill or bike intervals"), dumbbells: text("Интервали с въже или ходене", "Rope or walking intervals"),
+    home: text("Интервали ходене/тичане", "Walk/run intervals"), bodyweight: text("Интервали ходене/тичане", "Walk/run intervals"),
+  },
+  mobility: {
+    gym: text("Мобилност за таз и рамене", "Hip and shoulder mobility"), dumbbells: text("Мобилност за цяло тяло", "Full-body mobility"),
+    home: text("Мобилност за цяло тяло", "Full-body mobility"), bodyweight: text("Мобилност за цяло тяло", "Full-body mobility"),
+  },
+};
+
+const programs: Program[] = [
   {
-    id: "foundation",
-    icon: "🌱",
-    name: { bg: "Силна основа", en: "Strong Foundation" },
-    summary: { bg: "Три тренировки за цялото тяло с лесна прогресия.", en: "Three full-body sessions with simple progression." },
-    daysPerWeek: 3,
-    duration: "45–60 min",
-    level: { bg: "Начинаещ", en: "Beginner" },
-    schedule: [
-      {
-        day: { bg: "Ден 1", en: "Day 1" }, focus: { bg: "Цяло тяло A", en: "Full body A" },
-        exercises: [
-          { bg: "Гоблет клек — 3 × 8–12", en: "Goblet squat — 3 × 8–12" },
-          { bg: "Лицеви опори или лежанка — 3 × 8–12", en: "Push-up or bench press — 3 × 8–12" },
-          { bg: "Гребане — 3 × 10–12", en: "Row — 3 × 10–12" },
-          { bg: "Румънска тяга — 2 × 8–10", en: "Romanian deadlift — 2 × 8–10" },
-          { bg: "Планк — 3 × 30–45 сек", en: "Plank — 3 × 30–45 sec" },
-        ],
-      },
-      {
-        day: { bg: "Ден 2", en: "Day 2" }, focus: { bg: "Цяло тяло B", en: "Full body B" },
-        exercises: [
-          { bg: "Напади — 3 × 8 на крак", en: "Lunges — 3 × 8 each leg" },
-          { bg: "Раменна преса — 3 × 8–12", en: "Overhead press — 3 × 8–12" },
-          { bg: "Скрипец пред гърди — 3 × 8–12", en: "Lat pulldown — 3 × 8–12" },
-          { bg: "Глутеус мост — 3 × 10–15", en: "Glute bridge — 3 × 10–15" },
-          { bg: "Dead bug — 3 × 8 на страна", en: "Dead bug — 3 × 8 each side" },
-        ],
-      },
-      {
-        day: { bg: "Ден 3", en: "Day 3" }, focus: { bg: "Цяло тяло C", en: "Full body C" },
-        exercises: [
-          { bg: "Лег преса — 3 × 10–12", en: "Leg press — 3 × 10–12" },
-          { bg: "Полулег с дъмбели — 3 × 8–12", en: "Incline dumbbell press — 3 × 8–12" },
-          { bg: "Гребане с дъмбел — 3 × 10 на страна", en: "One-arm row — 3 × 10 each side" },
-          { bg: "Сгъване за задно бедро — 2 × 10–15", en: "Leg curl — 2 × 10–15" },
-          { bg: "Страничен планк — 2 × 30 сек", en: "Side plank — 2 × 30 sec" },
-        ],
-      },
+    id: "full-body", icon: "◆", name: text("Цяло тяло", "Full Body"),
+    summary: text("Най-практичният старт: всички основни движения във всяка тренировка.", "The practical starting point: all major movement patterns in every workout."),
+    level: text("Начинаещи и средно ниво", "Beginner to intermediate"), days: [2, 3], duration: [30, 60],
+    goals: ["maintain", "lose", "gain"], experience: ["beginner", "intermediate"], equipment: ["gym", "dumbbells", "home", "bodyweight"],
+    sessions: [
+      { focus: text("Цяло тяло A", "Full Body A"), exercises: [ex("squat", "3 x 8-12"), ex("push", "3 x 8-12"), ex("pull", "3 x 8-12"), ex("hinge", "2 x 8-10"), ex("core", "3 sets")] },
+      { focus: text("Цяло тяло B", "Full Body B"), exercises: [ex("lunge", "3 x 8/side"), ex("verticalPush", "3 x 8-12"), ex("verticalPull", "3 x 8-12"), ex("glutes", "3 x 10-15"), ex("carry", "3 rounds")] },
+      { focus: text("Цяло тяло C", "Full Body C"), exercises: [ex("hinge", "3 x 6-10"), ex("push", "3 x 8-12"), ex("pull", "3 x 10-12"), ex("squat", "3 x 10-12"), ex("core", "3 sets")] },
     ],
   },
   {
-    id: "balanced",
-    icon: "⚖️",
-    name: { bg: "Балансирана форма", en: "Balanced Fitness" },
-    summary: { bg: "Сила, кондиция и мобилност в четири умерени дни.", en: "Strength, conditioning, and mobility across four moderate days." },
-    daysPerWeek: 4,
-    duration: "45–65 min",
-    level: { bg: "Средно ниво", en: "Intermediate" },
-    schedule: [
-      { day: { bg: "Понеделник", en: "Monday" }, focus: { bg: "Горна част", en: "Upper body" }, exercises: [
-        { bg: "Лежанка — 3 × 6–10", en: "Bench press — 3 × 6–10" }, { bg: "Гребане — 3 × 8–12", en: "Row — 3 × 8–12" },
-        { bg: "Раменна преса — 3 × 8–10", en: "Overhead press — 3 × 8–10" }, { bg: "Скрипец пред гърди — 3 × 8–12", en: "Lat pulldown — 3 × 8–12" },
-      ] },
-      { day: { bg: "Вторник", en: "Tuesday" }, focus: { bg: "Долна част", en: "Lower body" }, exercises: [
-        { bg: "Клек — 3 × 6–10", en: "Squat — 3 × 6–10" }, { bg: "Румънска тяга — 3 × 8–10", en: "Romanian deadlift — 3 × 8–10" },
-        { bg: "Български клек — 2 × 8 на крак", en: "Split squat — 2 × 8 each leg" }, { bg: "Прасец — 3 × 12–15", en: "Calf raise — 3 × 12–15" },
-      ] },
-      { day: { bg: "Четвъртък", en: "Thursday" }, focus: { bg: "Цяло тяло", en: "Full body" }, exercises: [
-        { bg: "Тяга с трап бар — 3 × 5–8", en: "Trap-bar deadlift — 3 × 5–8" }, { bg: "Полулег с дъмбели — 3 × 8–12", en: "Incline dumbbell press — 3 × 8–12" },
-        { bg: "Набиране или скрипец — 3 × 8–12", en: "Pull-up or pulldown — 3 × 8–12" }, { bg: "Фермерска разходка — 3 серии", en: "Farmer carry — 3 rounds" },
-      ] },
-      { day: { bg: "Събота", en: "Saturday" }, focus: { bg: "Кондиция и мобилност", en: "Conditioning & mobility" }, exercises: [
-        { bg: "Кардио в леко темпо — 25–35 мин", en: "Easy-paced cardio — 25–35 min" }, { bg: "Мобилност за таз и рамене — 10 мин", en: "Hip and shoulder mobility — 10 min" },
-      ] },
+    id: "upper-lower", icon: "↕", name: text("Горна/долна част", "Upper / Lower"),
+    summary: text("Популярна четиридневна схема за добър баланс между сила, мускули и възстановяване.", "A popular four-day split balancing strength, muscle, and recovery."),
+    level: text("Средно ниво", "Intermediate"), days: [4], duration: [45, 75], goals: ["maintain", "gain"],
+    experience: ["intermediate", "advanced"], equipment: ["gym", "dumbbells", "home"],
+    sessions: [
+      { focus: text("Горна част - сила", "Upper - strength"), exercises: [ex("push", "4 x 5-8"), ex("pull", "4 x 6-10"), ex("verticalPush", "3 x 6-10"), ex("verticalPull", "3 x 8-12"), ex("arms", "2 x 10-15")] },
+      { focus: text("Долна част - сила", "Lower - strength"), exercises: [ex("squat", "4 x 5-8"), ex("hinge", "3 x 6-10"), ex("lunge", "3 x 8/side"), ex("calves", "3 x 12-15"), ex("core", "3 sets")] },
+      { focus: text("Горна част - обем", "Upper - volume"), exercises: [ex("push", "3 x 8-12"), ex("verticalPull", "3 x 8-12"), ex("pull", "3 x 10-12"), ex("shoulders", "3 x 12-15"), ex("arms", "3 x 10-15")] },
+      { focus: text("Долна част - обем", "Lower - volume"), exercises: [ex("hinge", "3 x 8-10"), ex("squat", "3 x 10-12"), ex("glutes", "3 x 8-12"), ex("lunge", "2 x 10/side"), ex("calves", "3 x 12-15")] },
     ],
   },
   {
-    id: "muscle",
-    icon: "💪",
-    name: { bg: "Сила и мускули", en: "Strength & Muscle" },
-    summary: { bg: "Четиридневна горна/долна част за сила и хипертрофия.", en: "A four-day upper/lower split for strength and hypertrophy." },
-    daysPerWeek: 4,
-    duration: "60–75 min",
-    level: { bg: "Средно ниво", en: "Intermediate" },
-    schedule: [
-      { day: { bg: "Ден 1", en: "Day 1" }, focus: { bg: "Горна част — сила", en: "Upper — strength" }, exercises: [
-        { bg: "Лежанка — 4 × 5–8", en: "Bench press — 4 × 5–8" }, { bg: "Гребане с щанга — 4 × 6–10", en: "Barbell row — 4 × 6–10" },
-        { bg: "Раменна преса — 3 × 6–10", en: "Overhead press — 3 × 6–10" }, { bg: "Набирания — 3 × 6–10", en: "Pull-ups — 3 × 6–10" },
-      ] },
-      { day: { bg: "Ден 2", en: "Day 2" }, focus: { bg: "Долна част — сила", en: "Lower — strength" }, exercises: [
-        { bg: "Клек — 4 × 5–8", en: "Squat — 4 × 5–8" }, { bg: "Румънска тяга — 3 × 6–10", en: "Romanian deadlift — 3 × 6–10" },
-        { bg: "Лег преса — 3 × 10–12", en: "Leg press — 3 × 10–12" }, { bg: "Корем — 3 серии", en: "Core — 3 rounds" },
-      ] },
-      { day: { bg: "Ден 3", en: "Day 3" }, focus: { bg: "Горна част — обем", en: "Upper — volume" }, exercises: [
-        { bg: "Полулег с дъмбели — 3 × 8–12", en: "Incline dumbbell press — 3 × 8–12" }, { bg: "Скрипец пред гърди — 3 × 8–12", en: "Lat pulldown — 3 × 8–12" },
-        { bg: "Странично рамо — 3 × 12–15", en: "Lateral raise — 3 × 12–15" }, { bg: "Бицепс + трицепс — 3 × 10–15", en: "Biceps + triceps — 3 × 10–15" },
-      ] },
-      { day: { bg: "Ден 4", en: "Day 4" }, focus: { bg: "Долна част — обем", en: "Lower — volume" }, exercises: [
-        { bg: "Преден клек — 3 × 8–10", en: "Front squat — 3 × 8–10" }, { bg: "Хип тръст — 3 × 8–12", en: "Hip thrust — 3 × 8–12" },
-        { bg: "Напади — 3 × 10 на крак", en: "Lunges — 3 × 10 each leg" }, { bg: "Задно бедро + прасец — 3 × 12–15", en: "Leg curl + calves — 3 × 12–15" },
-      ] },
+    id: "push-pull-legs", icon: "PPL", name: text("Бутане/дърпане/крака", "Push / Pull / Legs"),
+    summary: text("Класически сплит с ясен фокус; работи в 3 или 6 тренировъчни дни.", "A classic focused split that works across three or six training days."),
+    level: text("Средно и напреднало ниво", "Intermediate to advanced"), days: [3, 5, 6], duration: [45, 75], goals: ["gain", "maintain"],
+    experience: ["intermediate", "advanced"], equipment: ["gym", "dumbbells"],
+    sessions: [
+      { focus: text("Бутане A", "Push A"), exercises: [ex("push", "4 x 6-10"), ex("verticalPush", "3 x 8-10"), ex("shoulders", "3 x 12-15"), ex("arms", "3 x 10-15")] },
+      { focus: text("Дърпане A", "Pull A"), exercises: [ex("verticalPull", "4 x 6-10"), ex("pull", "4 x 8-12"), ex("hinge", "3 x 6-10"), ex("arms", "3 x 10-15")] },
+      { focus: text("Крака A", "Legs A"), exercises: [ex("squat", "4 x 6-10"), ex("hinge", "3 x 8-10"), ex("lunge", "3 x 8/side"), ex("calves", "3 x 12-15"), ex("core", "3 sets")] },
+      { focus: text("Бутане B", "Push B"), exercises: [ex("verticalPush", "4 x 6-10"), ex("push", "3 x 8-12"), ex("shoulders", "3 x 12-15"), ex("arms", "3 x 10-15")] },
+      { focus: text("Дърпане B", "Pull B"), exercises: [ex("pull", "4 x 6-10"), ex("verticalPull", "3 x 8-12"), ex("carry", "3 rounds"), ex("arms", "3 x 10-15")] },
+      { focus: text("Крака B", "Legs B"), exercises: [ex("hinge", "4 x 6-10"), ex("squat", "3 x 8-12"), ex("glutes", "3 x 8-12"), ex("calves", "3 x 12-15"), ex("core", "3 sets")] },
     ],
   },
   {
-    id: "conditioning",
-    icon: "🔥",
-    name: { bg: "Форма и кондиция", en: "Lean & Conditioned" },
-    summary: { bg: "Силови тренировки плюс контролирано кардио за добра форма.", en: "Strength work plus controlled cardio for overall conditioning." },
-    daysPerWeek: 4,
-    duration: "40–60 min",
-    level: { bg: "Всички нива", en: "All levels" },
-    schedule: [
-      { day: { bg: "Ден 1", en: "Day 1" }, focus: { bg: "Цяло тяло", en: "Full body" }, exercises: [
-        { bg: "Клек, лицеви опори, гребане — 3 × 10", en: "Squat, push-up, row — 3 × 10" }, { bg: "Бързо ходене — 15 мин", en: "Brisk walk — 15 min" },
-      ] },
-      { day: { bg: "Ден 2", en: "Day 2" }, focus: { bg: "Леко кардио", en: "Easy cardio" }, exercises: [
-        { bg: "Ходене, колело или плуване — 30–45 мин", en: "Walk, bike, or swim — 30–45 min" },
-      ] },
-      { day: { bg: "Ден 3", en: "Day 3" }, focus: { bg: "Цяло тяло", en: "Full body" }, exercises: [
-        { bg: "Тяга, раменна преса, напади — 3 × 8–12", en: "Deadlift, overhead press, lunges — 3 × 8–12" }, { bg: "Планк — 3 серии", en: "Plank — 3 rounds" },
-      ] },
-      { day: { bg: "Ден 4", en: "Day 4" }, focus: { bg: "Интервали", en: "Intervals" }, exercises: [
-        { bg: "6 × 1 мин бързо / 2 мин леко", en: "6 × 1 min brisk / 2 min easy" }, { bg: "Разтягане — 10 мин", en: "Mobility — 10 min" },
-      ] },
+    id: "five-by-five", icon: "5x5", name: text("Силова 5x5", "Strength 5x5"),
+    summary: text("Проста тридневна програма около базови упражнения и постепенно увеличаване на тежестта.", "A simple three-day program built around compound lifts and gradual loading."),
+    level: text("Начинаещи и средно ниво", "Beginner to intermediate"), days: [3], duration: [45, 70], goals: ["gain", "maintain"],
+    experience: ["beginner", "intermediate"], equipment: ["gym"],
+    sessions: [
+      { focus: text("Сила A", "Strength A"), exercises: [ex("squat", "5 x 5"), ex("push", "5 x 5"), ex("pull", "5 x 5"), ex("core", "3 sets")] },
+      { focus: text("Сила B", "Strength B"), exercises: [ex("squat", "5 x 5"), ex("verticalPush", "5 x 5"), ex("hinge", "3 x 5"), ex("verticalPull", "3 x 6-10")] },
+      { focus: text("Сила C", "Strength C"), exercises: [ex("squat", "5 x 5"), ex("push", "5 x 5"), ex("pull", "5 x 5"), ex("carry", "3 rounds")] },
+    ],
+  },
+  {
+    id: "hybrid", icon: "◉", name: text("Хибридна форма", "Hybrid Fitness"),
+    summary: text("Съчетава силови тренировки, спокойно кардио и контролирани интервали.", "Combines strength sessions, easy cardio, and controlled intervals."),
+    level: text("Всички нива", "All levels"), days: [4, 5], duration: [30, 60], goals: ["lose", "maintain"],
+    experience: ["beginner", "intermediate", "advanced"], equipment: ["gym", "dumbbells", "home", "bodyweight"],
+    sessions: [
+      { focus: text("Цяло тяло A", "Full Body A"), exercises: [ex("squat", "3 x 8-12"), ex("push", "3 x 8-12"), ex("pull", "3 x 8-12"), ex("core", "3 sets")] },
+      { focus: text("Спокойно кардио", "Easy Cardio"), exercises: [ex("cardio", "30-45 min"), ex("mobility", "8-10 min")] },
+      { focus: text("Цяло тяло B", "Full Body B"), exercises: [ex("hinge", "3 x 8-10"), ex("verticalPush", "3 x 8-12"), ex("verticalPull", "3 x 8-12"), ex("lunge", "3 x 8/side"), ex("core", "3 sets")] },
+      { focus: text("Интервали", "Intervals"), exercises: [ex("intervals", "6 x 1 min hard / 2 min easy"), ex("mobility", "8-10 min")] },
+      { focus: text("Лека обща тренировка", "Light Full Body"), exercises: [ex("glutes", "3 x 12-15"), ex("push", "3 x 10-15"), ex("pull", "3 x 10-15"), ex("carry", "3 rounds")] },
+    ],
+  },
+  {
+    id: "home", icon: "⌂", name: text("Домашна програма", "Home Training"),
+    summary: text("Минимално оборудване, ясна прогресия и тренировки, които лесно влизат в графика.", "Minimal equipment, clear progression, and sessions that fit a busy schedule."),
+    level: text("Начинаещи и средно ниво", "Beginner to intermediate"), days: [3, 4], duration: [25, 50], goals: ["lose", "maintain", "gain"],
+    experience: ["beginner", "intermediate"], equipment: ["dumbbells", "home", "bodyweight"],
+    sessions: [
+      { focus: text("Домашна A", "Home A"), exercises: [ex("squat", "3 x 10-15"), ex("push", "3 x 8-15"), ex("pull", "3 x 10-15"), ex("glutes", "3 x 12-15"), ex("core", "3 sets")] },
+      { focus: text("Домашна B", "Home B"), exercises: [ex("lunge", "3 x 8/side"), ex("verticalPush", "3 x 8-12"), ex("hinge", "3 x 10-15"), ex("verticalPull", "3 x 10-15"), ex("core", "3 sets")] },
+      { focus: text("Домашна C", "Home C"), exercises: [ex("squat", "3 x 12-15"), ex("push", "3 x 8-15"), ex("pull", "3 x 10-15"), ex("carry", "3 rounds"), ex("mobility", "8 min")] },
+      { focus: text("Кондиция у дома", "Home Conditioning"), exercises: [ex("intervals", "8 x 30 sec / 60 sec easy"), ex("glutes", "3 x 15"), ex("core", "3 sets"), ex("mobility", "8 min")] },
     ],
   },
 ];
 
-const trainingTypes = [
-  { icon: "🏋️", title: { bg: "Цяло тяло", en: "Full body" }, text: { bg: "Тренира основните движения във всяка сесия. Подходящо за 2–3 дни седмично.", en: "Trains the main movement patterns each session. Ideal for 2–3 days per week." } },
-  { icon: "↕️", title: { bg: "Горна/долна част", en: "Upper/lower" }, text: { bg: "Разделя тялото в четири дни и дава повече обем за сила и мускули.", en: "Splits the body across four days and supports more strength and muscle volume." } },
-  { icon: "❤️", title: { bg: "Кардио и кондиция", en: "Cardio & conditioning" }, text: { bg: "Подобрява издръжливостта. Лекото темпо подпомага възстановяването, интервалите са по-натоварващи.", en: "Builds endurance. Easy work supports recovery, while intervals are more demanding." } },
-  { icon: "🧘", title: { bg: "Мобилност", en: "Mobility" }, text: { bg: "Поддържа удобен обхват на движение. Добавяй 5–10 минути според нуждите си.", en: "Maintains a comfortable range of motion. Add 5–10 minutes based on your needs." } },
-];
+const defaults: TrainingPreferences = { goal: "maintain", experience: "beginner", days: 3, minutes: 45, equipment: "gym" };
+const weekDays: Record<number, LocalText[]> = {
+  2: [text("Понеделник", "Monday"), text("Четвъртък", "Thursday")],
+  3: [text("Понеделник", "Monday"), text("Сряда", "Wednesday"), text("Петък", "Friday")],
+  4: [text("Понеделник", "Monday"), text("Вторник", "Tuesday"), text("Четвъртък", "Thursday"), text("Събота", "Saturday")],
+  5: [text("Понеделник", "Monday"), text("Вторник", "Tuesday"), text("Сряда", "Wednesday"), text("Петък", "Friday"), text("Събота", "Saturday")],
+  6: [text("Понеделник", "Monday"), text("Вторник", "Tuesday"), text("Сряда", "Wednesday"), text("Четвъртък", "Thursday"), text("Петък", "Friday"), text("Събота", "Saturday")],
+};
+
+const labels = {
+  goal: {
+    maintain: text("Поддържане и здраве", "Maintenance & health"), lose: text("Отслабване и форма", "Fat loss & fitness"), gain: text("Сила и мускули", "Strength & muscle"),
+  },
+  experience: {
+    beginner: text("Начинаещ", "Beginner"), intermediate: text("Средно ниво", "Intermediate"), advanced: text("Напреднал", "Advanced"),
+  },
+  equipment: {
+    gym: text("Фитнес зала", "Full gym"), dumbbells: text("Само дъмбели", "Dumbbells"), home: text("Домашно оборудване", "Home equipment"), bodyweight: text("Без оборудване", "Bodyweight"),
+  },
+};
+
+function scoreProgram(program: Program, prefs: TrainingPreferences, activity?: number) {
+  const nearestDays = Math.min(...program.days.map((days) => Math.abs(days - prefs.days)));
+  let score = program.days.includes(prefs.days) ? 9 : -nearestDays * 2;
+  if (program.goals.includes(prefs.goal)) score += 6;
+  if (program.experience.includes(prefs.experience)) score += 4;
+  if (program.equipment.includes(prefs.equipment)) score += 5;
+  if (prefs.minutes >= program.duration[0] && prefs.minutes <= program.duration[1]) score += 3;
+  if ((activity ?? 1.2) <= 1.375 && program.id === "full-body") score += 3;
+  return score;
+}
 
 export default function WorkoutsPage() {
   const { lang, setLang } = useLang();
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState<CalculatorProfile | null>(null);
-  const [goal, setGoal] = useState<Goal>("maintain");
+  const [prefs, setPrefs] = useState<TrainingPreferences>(defaults);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [storageReady, setStorageReady] = useState(false);
   const t = translations[lang] || translations.bg;
 
   useEffect(() => {
     const savedLang = localStorage.getItem("lang");
     if (savedLang === "bg" || savedLang === "en") setLang(savedLang);
     try {
-      const savedProfile = localStorage.getItem("fittrack-calculator-profile-v1");
-      if (savedProfile) setProfile(JSON.parse(savedProfile));
+      const calculator = localStorage.getItem("fittrack-calculator-profile-v1");
+      if (calculator) setProfile(JSON.parse(calculator));
+      const savedTraining = localStorage.getItem("fittrack-training-preferences-v1");
       const savedPlan = localStorage.getItem("fittrack-active-plan-v2");
-      if (savedPlan) {
-        const parsed = JSON.parse(savedPlan) as { goal?: Goal };
-        if (parsed.goal) setGoal(parsed.goal);
-      }
+      const training = savedTraining ? JSON.parse(savedTraining) as Partial<TrainingPreferences> & { selectedPlanId?: string | null } : null;
+      const nutrition = savedPlan ? JSON.parse(savedPlan) as { goal?: Goal } : null;
+      setPrefs({ ...defaults, ...(training || {}), goal: training?.goal || nutrition?.goal || defaults.goal });
+      if (training?.selectedPlanId) setSelectedPlanId(training.selectedPlanId);
     } catch {
-      // Invalid browser data should not prevent the general plans from loading.
+      localStorage.removeItem("fittrack-training-preferences-v1");
+    } finally {
+      setStorageReady(true);
     }
   }, [setLang]);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    localStorage.setItem("fittrack-training-preferences-v1", JSON.stringify({ ...prefs, selectedPlanId }));
+  }, [prefs, selectedPlanId, storageReady]);
+
+  const recommended = useMemo(() => [...programs].sort((a, b) => scoreProgram(b, prefs, profile?.activity) - scoreProgram(a, prefs, profile?.activity))[0], [prefs, profile]);
+  const activePlan = programs.find((program) => program.id === selectedPlanId) || recommended;
+  const sessionCount = Math.min(activePlan.sessions.length, activePlan.days.includes(prefs.days) ? prefs.days : activePlan.days.reduce((best, value) => Math.abs(value - prefs.days) < Math.abs(best - prefs.days) ? value : best));
+  const schedule = activePlan.sessions.slice(0, sessionCount);
+  const scheduleDays = weekDays[sessionCount] || weekDays[3];
+  const exerciseLimit = prefs.minutes <= 30 ? 4 : prefs.minutes <= 45 ? 5 : 6;
+
+  const updatePrefs = <K extends keyof TrainingPreferences>(key: K, value: TrainingPreferences[K]) => {
+    setPrefs((current) => ({ ...current, [key]: value }));
+    setSelectedPlanId(null);
+  };
 
   const toggleLang = () => {
     const next = lang === "bg" ? "en" : "bg";
@@ -187,83 +272,62 @@ export default function WorkoutsPage() {
     localStorage.setItem("lang", next);
   };
 
-  const recommendedId = useMemo(() => {
-    if (!profile || profile.activity <= 1.375) return "foundation";
-    if (goal === "gain") return "muscle";
-    if (goal === "lose") return "conditioning";
-    return "balanced";
-  }, [profile, goal]);
-  const activePlan = plans.find((plan) => plan.id === (selectedPlanId || recommendedId)) || plans[0];
-  const goalLabel = goal === "lose"
-    ? (lang === "bg" ? "отслабване" : "fat loss")
-    : goal === "gain"
-      ? (lang === "bg" ? "покачване" : "muscle gain")
-      : (lang === "bg" ? "поддържане" : "maintenance");
-
   return (
     <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 font-sans text-white">
       <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-12 sm:px-6 sm:pt-16">
-        <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-green-400">
-              {lang === "bg" ? "Тренировки според твоята цел" : "Training for your goal"}
-            </p>
-            <h1 className="fit-title-gradient text-4xl font-black tracking-tight sm:text-5xl md:text-6xl">
-              {lang === "bg" ? "Твоята по-силна седмица" : "Your stronger week"}
+      <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
+        <div className="grid items-start gap-7 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="pt-2">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-green-400">{lang === "bg" ? "Персонална тренировъчна седмица" : "Your personal training week"}</p>
+            <h1 className="fit-title-gradient mt-3 text-4xl font-black tracking-tight sm:text-5xl md:text-6xl">
+              {lang === "bg" ? "План, който пасва на живота ти" : "A plan that fits your life"}
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-300 sm:text-lg">
-              {lang === "bg"
-                ? "Избери план, който можеш да следваш постоянно. Препоръката използва данните от калкулатора и целта на хранителния ти план."
-                : "Choose a plan you can follow consistently. Your recommendation uses calculator data and your nutrition-plan goal."}
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg">
+              {lang === "bg" ? "Избери цел, свободни дни и оборудване. Ще подберем подходяща програма и ще я подредим в реалистичен график." : "Choose your goal, available days, and equipment. We will match a proven program format and place it into a realistic schedule."}
             </p>
+            <div className="mt-6 flex flex-wrap gap-2 text-xs text-gray-300">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2">6 {lang === "bg" ? "популярни формата" : "popular formats"}</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2">{lang === "bg" ? "Автоматично запазване" : "Saved automatically"}</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2">{lang === "bg" ? "Адаптивни упражнения" : "Adaptive exercises"}</span>
+            </div>
           </div>
 
-          <div className="fit-surface rounded-3xl border border-green-500/25 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-500">{lang === "bg" ? "Твоята препоръка" : "Your recommendation"}</p>
-                <p className="mt-1 text-xl font-bold text-green-300">{activePlan.name[lang]}</p>
-              </div>
-              <span className="text-3xl">{activePlan.icon}</span>
+          <div className="fit-surface rounded-3xl border border-green-500/25 p-4 sm:p-6">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div><p className="text-xs font-bold uppercase tracking-wider text-green-400">{lang === "bg" ? "Настрой препоръката" : "Tailor your recommendation"}</p><h2 className="mt-1 text-xl font-bold">{lang === "bg" ? "Твоят график" : "Your schedule"}</h2></div>
+              <span className="rounded-xl bg-green-500/10 px-3 py-2 text-xs font-bold text-green-300">{recommended.name[lang]}</span>
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              <Stat value={`${activePlan.daysPerWeek}`} label={lang === "bg" ? "дни" : "days"} />
-              <Stat value={activePlan.duration.replace(" min", "")} label="min" />
-              <Stat value={profile ? `${profile.activity}` : "—"} label={lang === "bg" ? "активност" : "activity"} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField testId="training-goal" label={lang === "bg" ? "Цел" : "Goal"} value={prefs.goal} onChange={(value) => updatePrefs("goal", value as Goal)} options={(Object.keys(labels.goal) as Goal[]).map((value) => ({ value, label: labels.goal[value][lang] }))} />
+              <SelectField testId="training-experience" label={lang === "bg" ? "Опит" : "Experience"} value={prefs.experience} onChange={(value) => updatePrefs("experience", value as Experience)} options={(Object.keys(labels.experience) as Experience[]).map((value) => ({ value, label: labels.experience[value][lang] }))} />
+              <SelectField testId="training-days" label={lang === "bg" ? "Дни седмично" : "Days per week"} value={String(prefs.days)} onChange={(value) => updatePrefs("days", Number(value))} options={[2, 3, 4, 5, 6].map((value) => ({ value: String(value), label: `${value} ${lang === "bg" ? "дни" : "days"}` }))} />
+              <SelectField testId="training-minutes" label={lang === "bg" ? "Време за тренировка" : "Session length"} value={String(prefs.minutes)} onChange={(value) => updatePrefs("minutes", Number(value))} options={[30, 45, 60, 75].map((value) => ({ value: String(value), label: `${value} min` }))} />
+              <div className="sm:col-span-2"><SelectField testId="training-equipment" label={lang === "bg" ? "Оборудване" : "Equipment"} value={prefs.equipment} onChange={(value) => updatePrefs("equipment", value as Equipment)} options={(Object.keys(labels.equipment) as Equipment[]).map((value) => ({ value, label: labels.equipment[value][lang] }))} /></div>
             </div>
             <p className="mt-4 text-xs leading-relaxed text-gray-400">
-              {profile
-                ? (lang === "bg" ? `На база на активността ти и цел за ${goalLabel}.` : `Based on your activity and ${goalLabel} goal.`)
-                : (lang === "bg" ? "Попълни калкулатора за по-подходяща препоръка." : "Complete the calculator for a more tailored recommendation.")}
+              {profile?.activity ? (lang === "bg" ? "Включихме и запазеното ти ниво на активност от калкулатора." : "We also included your saved calculator activity level.") : (lang === "bg" ? "Попълни калкулатора, за да добавим и текущото ти ниво на активност." : "Complete the calculator to include your current activity level too.")}
             </p>
-            {!profile && <Link href="/calculator" className="fit-primary-button mt-4 block rounded-xl bg-green-500 px-4 py-2.5 text-center text-sm font-bold text-black">{lang === "bg" ? "Отвори калкулатора" : "Open calculator"}</Link>}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-green-400">{lang === "bg" ? "Готови програми" : "Ready-made programs"}</p>
-            <h2 className="mt-1 text-2xl font-bold sm:text-3xl">{lang === "bg" ? "Избери своя ритъм" : "Choose your rhythm"}</h2>
-          </div>
-          <p className="max-w-md text-sm text-gray-400">{lang === "bg" ? "Започни с по-малко дни и добавяй натоварване постепенно." : "Start with fewer days and build your training load gradually."}</p>
+          <div><p className="text-xs font-bold uppercase tracking-wider text-green-400">{lang === "bg" ? "Най-популярни програми" : "Most popular programs"}</p><h2 className="mt-1 text-2xl font-bold sm:text-3xl">{lang === "bg" ? "Избери тренировъчен формат" : "Choose a training format"}</h2></div>
+          <button type="button" onClick={() => setSelectedPlanId(null)} className="min-h-11 rounded-xl border border-green-500/30 px-4 text-sm font-semibold text-green-300 hover:bg-green-500/10">{lang === "bg" ? "Използвай препоръката" : "Use recommendation"}</button>
         </div>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {plans.map((plan) => {
-            const selected = activePlan.id === plan.id;
-            const recommended = recommendedId === plan.id;
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {programs.map((program) => {
+            const selected = activePlan.id === program.id;
+            const isRecommended = recommended.id === program.id;
             return (
-              <button key={plan.id} type="button" onClick={() => setSelectedPlanId(plan.id)} className={`relative rounded-2xl border p-4 text-left transition ${selected ? "border-green-400 bg-green-500/10 shadow-lg shadow-green-950/20" : "border-white/10 bg-gray-900/70 hover:border-green-400/35"}`}>
-                {recommended && <span className="absolute right-3 top-3 rounded-full bg-green-500 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-black">{lang === "bg" ? "За теб" : "For you"}</span>}
-                <span className="text-2xl">{plan.icon}</span>
-                <span className="mt-3 block pr-12 text-base font-bold text-white">{plan.name[lang]}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-gray-400">{plan.summary[lang]}</span>
-                <span className="mt-3 flex gap-2 text-[10px] font-semibold uppercase tracking-wide text-green-300">
-                  <span>{plan.daysPerWeek} {lang === "bg" ? "дни" : "days"}</span><span>•</span><span>{plan.level[lang]}</span>
-                </span>
+              <button key={program.id} type="button" onClick={() => setSelectedPlanId(program.id)} className={`relative min-h-48 rounded-2xl border p-5 text-left transition ${selected ? "border-green-400 bg-green-500/10 shadow-lg shadow-green-950/20" : "border-white/10 bg-gray-900/70 hover:border-green-400/35"}`}>
+                {isRecommended && <span className="absolute right-4 top-4 rounded-full bg-green-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-black">{lang === "bg" ? "За теб" : "For you"}</span>}
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-sm font-black text-green-300">{program.icon}</span>
+                <span className="mt-4 block pr-16 text-lg font-bold">{program.name[lang]}</span>
+                <span className="mt-2 block text-sm leading-relaxed text-gray-400">{program.summary[lang]}</span>
+                <span className="mt-4 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wide text-green-300"><span>{program.days.join("/")} {lang === "bg" ? "дни" : "days"}</span><span>•</span><span>{program.duration[0]}-{program.duration[1]} min</span></span>
               </button>
             );
           })}
@@ -273,22 +337,21 @@ export default function WorkoutsPage() {
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="fit-surface overflow-hidden rounded-3xl border border-green-500/20">
           <div className="border-b border-white/10 p-5 sm:p-6">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-green-400">{activePlan.level[lang]} • {activePlan.duration}</p>
-                <h2 className="mt-1 text-2xl font-black">{activePlan.icon} {activePlan.name[lang]}</h2>
-                <p className="mt-2 text-sm text-gray-400">{activePlan.summary[lang]}</p>
-              </div>
-              <span className="rounded-full border border-white/10 bg-black/15 px-3 py-2 text-xs text-gray-300">{activePlan.daysPerWeek} {lang === "bg" ? "тренировки седмично" : "workouts per week"}</span>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div><p className="text-xs font-bold uppercase tracking-wider text-green-400">{selectedPlanId ? (lang === "bg" ? "Твоят избор" : "Your choice") : (lang === "bg" ? "Най-добро съвпадение" : "Best match")}</p><h2 className="mt-1 text-2xl font-black">{activePlan.name[lang]}</h2><p className="mt-2 max-w-2xl text-sm text-gray-400">{activePlan.summary[lang]}</p></div>
+              <div className="grid grid-cols-3 gap-2 text-center"><Stat value={String(sessionCount)} label={lang === "bg" ? "дни" : "days"} /><Stat value={`${prefs.minutes}`} label="min" /><Stat value={labels.equipment[prefs.equipment][lang]} label={lang === "bg" ? "уреди" : "equipment"} /></div>
+            </div>
+            <div className="mt-4 rounded-xl border border-green-500/15 bg-green-500/[0.06] p-3 text-xs leading-relaxed text-green-100/80">
+              {lang === "bg" ? `Подбрано за цел „${labels.goal[prefs.goal].bg}", ${prefs.days} свободни дни и ${prefs.minutes} минути на тренировка. Упражненията са адаптирани за: ${labels.equipment[prefs.equipment].bg}.` : `Matched to your ${labels.goal[prefs.goal].en.toLowerCase()} goal, ${prefs.days} available days, and ${prefs.minutes}-minute sessions. Exercises are adapted for: ${labels.equipment[prefs.equipment].en}.`}
             </div>
           </div>
           <div className="grid gap-px bg-white/5 md:grid-cols-2">
-            {activePlan.schedule.map((workout) => (
-              <article key={`${activePlan.id}-${workout.day.en}`} className="bg-gray-900/95 p-5 sm:p-6">
-                <p className="text-xs font-bold uppercase tracking-wider text-green-400">{workout.day[lang]}</p>
-                <h3 className="mt-1 text-lg font-bold text-white">{workout.focus[lang]}</h3>
-                <ul className="mt-4 space-y-2">
-                  {workout.exercises.map((exercise) => <li key={exercise.en} className="flex gap-2 text-sm text-gray-300"><span className="text-green-400">✓</span><span>{exercise[lang]}</span></li>)}
+            {schedule.map((session, index) => (
+              <article key={`${activePlan.id}-${index}`} className="bg-gray-900/95 p-5 sm:p-6">
+                <div className="flex items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-wider text-green-400">{scheduleDays[index]?.[lang] || `${lang === "bg" ? "Ден" : "Day"} ${index + 1}`}</p><span className="text-[10px] text-gray-500">~{prefs.minutes} min</span></div>
+                <h3 className="mt-1 text-lg font-bold">{session.focus[lang]}</h3>
+                <ul className="mt-4 space-y-2.5">
+                  {session.exercises.slice(0, exerciseLimit).map((exercise) => <li key={`${exercise.id}-${exercise.prescription}`} className="flex gap-2 text-sm text-gray-300"><span className="mt-0.5 text-green-400">✓</span><span>{exerciseNames[exercise.id][prefs.equipment][lang]} <span className="text-gray-500">- {exercise.prescription}</span></span></li>)}
                 </ul>
               </article>
             ))}
@@ -297,32 +360,21 @@ export default function WorkoutsPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <p className="text-xs font-bold uppercase tracking-wider text-green-400">{lang === "bg" ? "Основни методи" : "Training methods"}</p>
-        <h2 className="mt-1 text-2xl font-bold sm:text-3xl">{lang === "bg" ? "Как работят различните планове" : "How different plans work"}</h2>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {trainingTypes.map((type) => <article key={type.title.en} className="fit-surface rounded-2xl border border-white/10 p-4"><span className="text-2xl">{type.icon}</span><h3 className="mt-3 font-bold text-white">{type.title[lang]}</h3><p className="mt-2 text-xs leading-relaxed text-gray-400">{type.text[lang]}</p></article>)}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="grid gap-4 lg:grid-cols-3">
-          <InfoBlock number="01" title={lang === "bg" ? "Загрявай" : "Warm up"} text={lang === "bg" ? "5–10 минути леко движение и 2–3 подготвителни серии преди тежко упражнение." : "Use 5–10 minutes of easy movement and 2–3 preparation sets before a heavy exercise."} />
-          <InfoBlock number="02" title={lang === "bg" ? "Прогресирай постепенно" : "Progress gradually"} text={lang === "bg" ? "Когато изпълниш горната граница повторения с добра техника, добави малко тежест." : "When you reach the top of the rep range with good form, add a small amount of weight."} />
-          <InfoBlock number="03" title={lang === "bg" ? "Възстановявай се" : "Recover"} text={lang === "bg" ? "Оставяй поне ден между тежки тренировки за същите мускули и пази 2–3 повторения в резерв." : "Leave at least a day between hard sessions for the same muscles and keep 2–3 reps in reserve."} />
+          <InfoBlock number="01" title={lang === "bg" ? "Започни с резерв" : "Start with reps in reserve"} text={lang === "bg" ? "През първите седмици завършвай сериите с усещане, че можеш да направиш още 2-3 чисти повторения." : "For the first weeks, finish sets feeling that you could complete another 2-3 clean repetitions."} />
+          <InfoBlock number="02" title={lang === "bg" ? "Прогресирай постепенно" : "Progress gradually"} text={lang === "bg" ? "Когато покриеш горната граница повторения с добра техника, добави малко тежест или едно повторение." : "When you reach the top of the rep range with good form, add a small amount of load or one repetition."} />
+          <InfoBlock number="03" title={lang === "bg" ? "Пази възстановяването" : "Protect recovery"} text={lang === "bg" ? "Оставяй поне ден между тежки тренировки за едни и същи мускули и намали обема при натрупана умора." : "Leave at least a day between hard sessions for the same muscles and reduce volume when fatigue accumulates."} />
         </div>
-        <div className="mt-5 rounded-2xl border border-amber-400/15 bg-amber-400/[0.05] p-4 text-xs leading-relaxed text-amber-100/75">
-          {lang === "bg" ? "Спри при остра болка, замайване или необичайно неразположение. При травма, заболяване, бременност или медицинско ограничение потърси подходящ съвет преди нова тренировъчна програма." : "Stop for sharp pain, dizziness, or unusual discomfort. If you have an injury, health condition, pregnancy, or medical restriction, seek appropriate guidance before starting a new program."}
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs leading-relaxed text-gray-400">
+          {lang === "bg" ? "За общо здраве добавяй умерено движение през седмицата и тренирай основните мускулни групи поне два дни. Започни с малко и увеличавай постепенно. При травма, заболяване, бременност, остра болка или замайване потърси подходящ медицински съвет." : "For general health, include moderate activity through the week and train the major muscle groups on at least two days. Start small and build gradually. Seek appropriate medical advice for injury, illness, pregnancy, sharp pain, or dizziness."}
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-6 text-center sm:p-8">
-          <h2 className="text-2xl font-bold">{lang === "bg" ? "Събери тренировките и храненето" : "Bring training and nutrition together"}</h2>
-          <p className="mx-auto mt-2 max-w-2xl text-sm text-gray-400">{lang === "bg" ? "Използвай калкулатора за актуални данни и персоналния план за хранене според целта си." : "Use the calculator for current body data and the personal nutrition plan for your goal."}</p>
-          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href="/calculator" className="fit-secondary-button rounded-xl border border-green-500/30 px-5 py-3 text-sm font-semibold text-green-200">{lang === "bg" ? "Калкулатор" : "Calculator"}</Link>
-            <Link href="/personal-plan" className="fit-primary-button rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-black">{lang === "bg" ? "Персонален хранителен план" : "Personal nutrition plan"}</Link>
-          </div>
+          <h2 className="text-2xl font-bold">{lang === "bg" ? "Свържи тренировките с храненето" : "Connect training and nutrition"}</h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-gray-400">{lang === "bg" ? "Запази актуални данните си в калкулатора и използвай персоналния хранителен план според същата цел." : "Keep your calculator profile current and use the personal nutrition plan with the same goal."}</p>
+          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/calculator" className="fit-secondary-button min-h-11 rounded-xl border border-green-500/30 px-5 py-3 text-sm font-semibold text-green-200">{lang === "bg" ? "Калкулатор" : "Calculator"}</Link><Link href="/personal-plan" className="fit-primary-button min-h-11 rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-black">{lang === "bg" ? "Персонален хранителен план" : "Personal nutrition plan"}</Link></div>
         </div>
       </section>
 
@@ -332,10 +384,14 @@ export default function WorkoutsPage() {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return <div className="rounded-xl border border-white/5 bg-black/15 p-2"><p className="text-sm font-black text-white">{value}</p><p className="text-[9px] uppercase tracking-wide text-gray-500">{label}</p></div>;
+function SelectField({ testId, label, value, onChange, options }: { testId: string; label: string; value: string; onChange: (value: string) => void; options: { value: string; label: string }[] }) {
+  return <label className="block"><span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-500">{label}</span><select data-testid={testId} value={value} onChange={(event) => onChange(event.target.value)} className="min-h-12 w-full rounded-xl border border-white/10 bg-gray-950 px-3 text-sm font-semibold text-white outline-none transition focus:border-green-400 focus:ring-2 focus:ring-green-500/15">{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;
 }
 
-function InfoBlock({ number, title, text }: { number: string; title: string; text: string }) {
-  return <article className="fit-surface rounded-2xl border border-white/10 p-5"><span className="text-xs font-black text-green-400">{number}</span><h3 className="mt-2 text-lg font-bold text-white">{title}</h3><p className="mt-2 text-sm leading-relaxed text-gray-400">{text}</p></article>;
+function Stat({ value, label }: { value: string; label: string }) {
+  return <div className="min-w-20 rounded-xl border border-white/5 bg-black/15 p-2"><p className="truncate text-sm font-black text-white">{value}</p><p className="text-[9px] uppercase tracking-wide text-gray-500">{label}</p></div>;
+}
+
+function InfoBlock({ number, title, text: body }: { number: string; title: string; text: string }) {
+  return <article className="fit-surface rounded-2xl border border-white/10 p-5"><span className="text-xs font-black text-green-400">{number}</span><h3 className="mt-2 text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-gray-400">{body}</p></article>;
 }
