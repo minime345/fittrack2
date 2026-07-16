@@ -19,7 +19,7 @@ export function WeeklyTable({
   replaceMeal,
 }: WeeklyTableProps) {
   return (
-    <div className="fit-surface hidden md:block overflow-x-auto rounded-2xl shadow-lg border border-gray-800 bg-gray-900 text-gray-100 max-w-full">
+    <div className="fit-surface hidden max-w-full overflow-x-auto rounded-2xl text-gray-100 shadow-lg md:block">
       <table className="min-w-full table-fixed border-collapse divide-y divide-gray-700">
         <thead>
           <tr className="bg-gray-800 text-green-400 uppercase text-xs tracking-wider select-none border-b border-gray-600">

@@ -6,11 +6,16 @@ import { useMemo, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
 import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
-import { scoreProgram } from "./config";
+import { getProgramMatch, labels, scoreProgram } from "./config";
 import { programs } from "./data/programs";
 import { InfoBlock } from "./components/InfoBlock";
 import { PreferencesPanel } from "./components/PreferencesPanel";
 import { ProgramCard } from "./components/ProgramCard";
+import {
+  ProgramFilters,
+  type DayFilter,
+  type EquipmentFilter,
+} from "./components/ProgramFilters";
 import { useTrainingPreferences } from "./useTrainingPreferences";
 
 export default function WorkoutsPage() {
@@ -28,6 +33,10 @@ export default function WorkoutsPage() {
     selectPlan,
   } = useTrainingPreferences();
   const [previewPlanId, setPreviewPlanId] = useState<string | null>(null);
+  const [dayFilter, setDayFilter] = useState<DayFilter>("all");
+  const [equipmentFilter, setEquipmentFilter] =
+    useState<EquipmentFilter>("all");
+  const [visiblePlanCount, setVisiblePlanCount] = useState(6);
 
   const recommended = useMemo(
     () =>
@@ -39,13 +48,66 @@ export default function WorkoutsPage() {
     [prefs, profile],
   );
 
+  const recommendedMatch = useMemo(
+    () => getProgramMatch(recommended, prefs, profile?.activity),
+    [recommended, prefs, profile],
+  );
+
+  const matchReasons = useMemo(() => {
+    const reasons: string[] = [];
+    if (recommendedMatch.matches.goal) reasons.push(labels.goal[prefs.goal][lang]);
+    if (recommendedMatch.matches.equipment)
+      reasons.push(labels.equipment[prefs.equipment][lang]);
+    if (recommendedMatch.matches.days)
+      reasons.push(`${prefs.days} ${lang === "bg" ? "дни седмично" : "days per week"}`);
+    if (recommendedMatch.matches.duration)
+      reasons.push(`${prefs.minutes} ${lang === "bg" ? "минути" : "minutes"}`);
+    if (recommendedMatch.matches.experience)
+      reasons.push(labels.experience[prefs.experience][lang]);
+    if (recommendedMatch.matches.activityProfile)
+      reasons.push(lang === "bg" ? "Ниво на активност" : "Activity level");
+    return reasons.slice(0, 5);
+  }, [lang, prefs, recommendedMatch.matches]);
+
+  const filteredPrograms = useMemo(
+    () =>
+      programs
+        .filter(
+          (program) =>
+            (dayFilter === "all" || program.days.includes(dayFilter)) &&
+            (equipmentFilter === "all" ||
+              program.equipment.includes(equipmentFilter)),
+        )
+        .sort((a, b) => {
+          if (a.id === recommended.id) return -1;
+          if (b.id === recommended.id) return 1;
+          return (
+            scoreProgram(b, prefs, profile?.activity) -
+            scoreProgram(a, prefs, profile?.activity)
+          );
+        }),
+    [dayFilter, equipmentFilter, prefs, profile, recommended.id],
+  );
+
+  const visiblePrograms = filteredPrograms.slice(0, visiblePlanCount);
+
+  const updateDayFilter = (value: DayFilter) => {
+    setDayFilter(value);
+    setVisiblePlanCount(6);
+  };
+
+  const updateEquipmentFilter = (value: EquipmentFilter) => {
+    setEquipmentFilter(value);
+    setVisiblePlanCount(6);
+  };
+
   const openPlan = (planId: string) => {
     selectPlan(planId);
     router.push(`/workouts/${planId}`);
   };
 
   return (
-    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 font-sans text-white">
+    <main className="fit-shell min-h-screen font-sans text-white">
       <HeaderNav
         t={t}
         lang={lang}
@@ -54,7 +116,7 @@ export default function WorkoutsPage() {
         setIsOpen={setIsOpen}
       />
 
-      <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
+      <section className="fit-page-hero pb-8">
         <div className="grid items-start gap-7 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="pt-2">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-green-400">
@@ -69,8 +131,8 @@ export default function WorkoutsPage() {
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg">
               {lang === "bg"
-                ? "Избери цел, свободни дни и оборудване. Ще подберем подходяща програма и ще я подредим в реалистичен график."
-                : "Choose your goal, available days, and equipment. We will match a proven program format and place it into a realistic schedule."}
+                ? "FitTrack събира практични тренировъчни програми, хранене и проследяване на едно място. Препоръчваме план според настройките ти, но ти винаги можеш да избереш всяка програма, която харесваш."
+                : "FitTrack brings practical workout programs, nutrition, and progress tools together. We recommend a plan based on your preferences, but you can always choose any program you like."}
             </p>
             <div className="mt-6 flex flex-wrap gap-2 text-xs text-gray-300">
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
@@ -91,19 +153,21 @@ export default function WorkoutsPage() {
             prefs={prefs}
             updatePrefs={updatePrefs}
             recommendedName={recommended.name[lang]}
+            recommendedScore={recommendedMatch.score}
+            matchReasons={matchReasons}
             hasActivityProfile={Boolean(profile?.activity)}
           />
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <section className="fit-page-section pt-6">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-green-400">
-              {lang === "bg" ? "Най-популярни програми" : "Most popular programs"}
+              {lang === "bg" ? "Подбрано според твоите настройки" : "Picked for your preferences"}
             </p>
             <h2 className="mt-1 text-2xl font-bold sm:text-3xl">
-              {lang === "bg" ? "Избери тренировъчен формат" : "Choose a training format"}
+              {lang === "bg" ? "Разгледай най-подходящите програми за теб" : "Explore the plans that fit you best"}
             </h2>
           </div>
           <button
@@ -114,27 +178,68 @@ export default function WorkoutsPage() {
             {lang === "bg" ? "Избери препоръката" : "Select recommendation"}
           </button>
         </div>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {programs.map((program) => (
-            <ProgramCard
-              key={program.id}
-              program={program}
-              lang={lang}
-              selected={selectedPlanId === program.id}
-              isPreviewed={previewPlanId === program.id}
-              isRecommended={recommended.id === program.id}
-              onTogglePreview={() =>
-                setPreviewPlanId(
-                  previewPlanId === program.id ? null : program.id,
-                )
-              }
-              onSelect={() => openPlan(program.id)}
-            />
-          ))}
-        </div>
+        <ProgramFilters
+          lang={lang}
+          dayFilter={dayFilter}
+          setDayFilter={updateDayFilter}
+          equipmentFilter={equipmentFilter}
+          setEquipmentFilter={updateEquipmentFilter}
+          resultCount={filteredPrograms.length}
+        />
+
+        {filteredPrograms.length > 0 ? (
+          <div className="grid items-start gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {visiblePrograms.map((program, index) => (
+              <ProgramCard
+                key={program.id}
+                program={program}
+                lang={lang}
+                selected={selectedPlanId === program.id}
+                isPreviewed={previewPlanId === program.id}
+                isRecommended={recommended.id === program.id}
+                rank={index + 1}
+                matchScore={getProgramMatch(program, prefs, profile?.activity).score}
+                onTogglePreview={() =>
+                  setPreviewPlanId(
+                    previewPlanId === program.id ? null : program.id,
+                  )
+                }
+                onSelect={() => openPlan(program.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center text-sm text-gray-400">
+            {lang === "bg"
+              ? "Няма програми, отговарящи на избраните филтри."
+              : "No programs match the selected filters."}
+            <button
+              type="button"
+              onClick={() => {
+                setDayFilter("all");
+                setEquipmentFilter("all");
+                setVisiblePlanCount(6);
+              }}
+              className="mt-3 block w-full text-xs font-bold text-green-300 hover:text-green-200 sm:inline sm:w-auto"
+            >
+              {lang === "bg" ? "Изчисти филтрите" : "Clear filters"}
+            </button>
+          </div>
+        )}
+        {visiblePlanCount < filteredPrograms.length && (
+          <div className="mt-8 text-center">
+            <button
+              type="button"
+              onClick={() => setVisiblePlanCount((count) => count + 6)}
+              className="fit-secondary-button min-h-11 rounded-xl border border-green-500/30 px-6 py-3 text-sm font-bold text-green-300"
+            >
+              {lang === "bg" ? "Зареди още" : "Load more"}
+            </button>
+          </div>
+        )}
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <section className="fit-page-section">
         <div className="grid gap-4 lg:grid-cols-3">
           <InfoBlock
             number="01"
@@ -175,7 +280,7 @@ export default function WorkoutsPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <section className="fit-page-section pb-14">
         <div className="rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-6 text-center sm:p-8">
           <h2 className="text-2xl font-bold">
             {lang === "bg"

@@ -6,6 +6,8 @@ export function ProgramCard({
   selected,
   isPreviewed,
   isRecommended,
+  rank,
+  matchScore,
   onTogglePreview,
   onSelect,
 }: {
@@ -14,12 +16,14 @@ export function ProgramCard({
   selected: boolean;
   isPreviewed: boolean;
   isRecommended: boolean;
+  rank: number;
+  matchScore: number;
   onTogglePreview: () => void;
   onSelect: () => void;
 }) {
   return (
     <article
-      className={`relative rounded-2xl border p-5 transition ${selected ? "border-green-400 bg-green-500/10 shadow-lg shadow-green-950/20" : isPreviewed ? "border-green-400/60 bg-gray-900" : "border-white/10 bg-gray-900/70 hover:border-green-400/35"}`}
+      className={`fit-surface fit-card-interactive relative self-start rounded-2xl border p-5 ${selected ? "border-green-400 bg-green-500/10 shadow-lg shadow-green-950/20" : isPreviewed ? "border-green-400/60" : "border-white/10"}`}
     >
       <button
         type="button"
@@ -27,15 +31,20 @@ export function ProgramCard({
         aria-expanded={isPreviewed}
         className="block w-full text-left"
       >
-        {isRecommended && (
-          <span className="absolute right-4 top-4 rounded-full bg-green-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-black">
-            {lang === "bg" ? "За теб" : "For you"}
+        <span className="absolute right-4 top-4 flex items-center gap-1.5">
+          <span className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-gray-300">
+            #{rank} · {matchScore}%
           </span>
-        )}
+          {isRecommended && (
+            <span className="rounded-full bg-green-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-black">
+              {lang === "bg" ? "За теб" : "For you"}
+            </span>
+          )}
+        </span>
         <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-sm font-black text-green-300">
           {program.icon}
         </span>
-        <span className="mt-4 block pr-16 text-lg font-bold">
+        <span className="mt-4 block pr-24 text-lg font-bold">
           {program.name[lang]}
         </span>
         <span className="mt-2 block text-sm leading-relaxed text-gray-400">

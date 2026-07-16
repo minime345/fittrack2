@@ -7,6 +7,8 @@ export function PreferencesPanel({
   prefs,
   updatePrefs,
   recommendedName,
+  recommendedScore,
+  matchReasons,
   hasActivityProfile,
 }: {
   lang: "bg" | "en";
@@ -16,6 +18,8 @@ export function PreferencesPanel({
     value: TrainingPreferences[K],
   ) => void;
   recommendedName: string;
+  recommendedScore: number;
+  matchReasons: string[];
   hasActivityProfile: boolean;
 }) {
   return (
@@ -29,11 +33,28 @@ export function PreferencesPanel({
             {lang === "bg" ? "Твоят график" : "Your schedule"}
           </h2>
         </div>
-        <span className="rounded-xl bg-green-500/10 px-3 py-2 text-xs font-bold text-green-300">
-          {recommendedName}
-        </span>
+        <div className="text-right">
+          <span className="block text-[9px] font-black uppercase tracking-wider text-green-400">
+            {lang === "bg" ? "Най-добро съвпадение" : "Best Match"}
+          </span>
+          <span className="mt-1 block rounded-xl bg-green-500/10 px-3 py-2 text-xs font-bold text-green-300">
+            {recommendedName} · {recommendedScore}%
+          </span>
+        </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 rounded-2xl border border-green-500/15 bg-green-500/[0.04] p-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+          {lang === "bg" ? "Защо е избран" : "Why it was selected"}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {matchReasons.map((reason) => (
+            <span key={reason} className="fit-chip text-[10px] text-green-200">
+              ✓ {reason}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <SelectField
           testId="training-goal"
           label={lang === "bg" ? "Цел" : "Goal"}

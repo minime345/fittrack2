@@ -25,7 +25,7 @@ export function WeeklyCards({
       {weeklyPlan.map((day, idx) => (
         <div
           key={idx}
-          className="fit-surface overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800/60 shadow-lg"
+          className="fit-surface fit-card-interactive overflow-hidden rounded-2xl shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/80 px-4 py-3">
             <span className="text-base font-semibold text-green-400">{t.Main.day} {idx + 1}</span>

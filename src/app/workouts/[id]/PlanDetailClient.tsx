@@ -68,7 +68,7 @@ export function PlanDetailClient({ id }: { id: string }) {
   };
 
   return (
-    <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 font-sans text-white">
+    <main className="fit-shell min-h-screen font-sans text-white">
       <HeaderNav
         t={t}
         lang={lang}
@@ -77,7 +77,7 @@ export function PlanDetailClient({ id }: { id: string }) {
         setIsOpen={setIsOpen}
       />
 
-      <section className="mx-auto max-w-6xl px-4 pb-4 pt-8 sm:px-6 sm:pt-12">
+      <section className="fit-page-hero pb-4 pt-8 sm:pt-12">
         <Link
           href="/workouts"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 transition hover:text-green-300"
@@ -86,7 +86,7 @@ export function PlanDetailClient({ id }: { id: string }) {
         </Link>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <section className="fit-page-section py-6">
         <div className="fit-surface overflow-hidden rounded-3xl border border-green-500/20">
           <div className="border-b border-white/10 p-5 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -121,6 +121,7 @@ export function PlanDetailClient({ id }: { id: string }) {
           </div>
 
           <ScheduleGrid
+            key={plan.id}
             planId={plan.id}
             schedule={schedule}
             scheduleDays={scheduleDays}
@@ -132,7 +133,7 @@ export function PlanDetailClient({ id }: { id: string }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+      <section className="fit-page-section pb-12 pt-2">
         <div className="grid gap-3 sm:grid-cols-2">
           <DownloadPlanButton lang={lang} onClick={handleDownloadPdf} />
           <Link

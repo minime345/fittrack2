@@ -5,6 +5,7 @@ const excludeIcons: Record<ExcludedSource, string> = {
   chicken: "🐔",
   beef: "🐄",
   pork: "🐖",
+  lamb: "🐑",
   fish: "🐟",
   supplement: "💊",
   vegan: "🌱",

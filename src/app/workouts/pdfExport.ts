@@ -20,6 +20,23 @@ type ExerciseRow = {
   height: number;
 };
 
+type SessionCard = {
+  session: SessionTemplate;
+  dayLabel: string;
+  rows: ExerciseRow[];
+  height: number;
+};
+
+type CardRow = {
+  cards: SessionCard[];
+  height: number;
+};
+
+type Layout = {
+  rows: CardRow[];
+  totalHeight: number;
+};
+
 const COLORS = {
   background: [7, 17, 31] as const,
   surface: [17, 29, 45] as const,
@@ -35,6 +52,15 @@ const PAGE_MARGIN = 8;
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
 const CONTENT_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2;
+const COLUMNS = 2;
+const CARD_GAP_X = 4;
+const COLUMN_WIDTH = (CONTENT_WIDTH - CARD_GAP_X * (COLUMNS - 1)) / COLUMNS;
+const FOOTER_Y = 287;
+
+// Largest scale is tried first; the first one whose content fits the page
+// is used, so plans with few sessions stay at full size and plans with
+// many sessions shrink just enough to stay on a single page.
+const SCALE_STEPS = [1, 0.94, 0.88, 0.82, 0.76, 0.7, 0.64, 0.58, 0.52];
 
 const setTextColor = (doc: jsPDF, color: readonly [number, number, number]) =>
   doc.setTextColor(color[0], color[1], color[2]);
@@ -51,22 +77,13 @@ const paintPage = (doc: jsPDF) => {
   doc.rect(PAGE_WIDTH * 0.56, 0, PAGE_WIDTH * 0.44, 1.2, "F");
 };
 
-const addPage = (doc: jsPDF, section: string) => {
-  doc.addPage("a4", "portrait");
-  doc.setFont("Roboto", "normal");
-  paintPage(doc);
-  setTextColor(doc, COLORS.muted);
-  doc.setFontSize(7.2);
-  doc.text(section, PAGE_WIDTH - PAGE_MARGIN, 9.5, { align: "right" });
-};
-
-const drawFooter = (doc: jsPDF, page: number, pageCount: number) => {
+const drawFooter = (doc: jsPDF) => {
   setFillColor(doc, COLORS.surfaceAlt);
-  doc.rect(PAGE_MARGIN, 287, CONTENT_WIDTH, 0.3, "F");
+  doc.rect(PAGE_MARGIN, FOOTER_Y, CONTENT_WIDTH, 0.3, "F");
   setTextColor(doc, COLORS.faint);
   doc.setFontSize(6.5);
-  doc.text("fittrack2-pi.vercel.app", PAGE_MARGIN, 292);
-  doc.text(`${page} / ${pageCount}`, PAGE_WIDTH - PAGE_MARGIN, 292, {
+  doc.text("fittrack2-pi.vercel.app", PAGE_MARGIN, FOOTER_Y + 5);
+  doc.text("1 / 1", PAGE_WIDTH - PAGE_MARGIN, FOOTER_Y + 5, {
     align: "right",
   });
 };
@@ -96,84 +113,114 @@ const buildExerciseRows = (
   exerciseLimit: number,
   equipment: Equipment,
   lang: "bg" | "en",
-): ExerciseRow[] =>
-  session.exercises.slice(0, exerciseLimit).map((exercise) => {
+  scale: number,
+): ExerciseRow[] => {
+  doc.setFontSize(7.4 * scale);
+  const lineHeight = 3.15 * scale;
+  return session.exercises.slice(0, exerciseLimit).map((exercise) => {
     const name = getExerciseName(exercise.id, equipment, lang);
     const label = `${name} - ${exercise.prescription}`;
-    const lines = doc.splitTextToSize(label, CONTENT_WIDTH - 14) as string[];
-    return { lines, height: Math.max(6.4, 2.6 + lines.length * 3.4) };
-  });
-
-const sessionCardHeight = (rows: ExerciseRow[]) =>
-  15 + rows.reduce((sum, row) => sum + row.height, 0) + 2;
-
-const drawSessionCard = (
-  doc: jsPDF,
-  session: SessionTemplate,
-  dayLabel: string,
-  minutes: number,
-  rows: ExerciseRow[],
-  y: number,
-  height: number,
-  lang: "bg" | "en",
-) => {
-  const x = PAGE_MARGIN;
-  setFillColor(doc, COLORS.surface);
-  doc.roundedRect(x, y, CONTENT_WIDTH, height, 3.2, 3.2, "F");
-  setFillColor(doc, COLORS.surfaceAlt);
-  doc.roundedRect(x, y, CONTENT_WIDTH, 12.5, 3.2, 3.2, "F");
-  doc.rect(x, y + 8.5, CONTENT_WIDTH, 4, "F");
-
-  setTextColor(doc, COLORS.green);
-  doc.setFontSize(6.2);
-  doc.text(dayLabel.toUpperCase(), x + 4, y + 4.6);
-  setTextColor(doc, COLORS.white);
-  doc.setFontSize(10.5);
-  doc.text(session.focus[lang], x + 4, y + 10.2);
-  setTextColor(doc, COLORS.muted);
-  doc.setFontSize(6.8);
-  doc.text(`~${minutes} min`, PAGE_WIDTH - PAGE_MARGIN - 4, y + 7.2, {
-    align: "right",
-  });
-
-  let rowY = y + 15;
-  rows.forEach((row) => {
-    setTextColor(doc, COLORS.green);
-    doc.setFontSize(7.5);
-    doc.text("v", x + 4, rowY + 3.6);
-    setTextColor(doc, COLORS.white);
-    doc.setFontSize(7.4);
-    row.lines.forEach((line, lineIndex) =>
-      doc.text(line, x + 8.5, rowY + 3.6 + lineIndex * 3.4),
-    );
-    rowY += row.height;
+    const lines = doc.splitTextToSize(label, COLUMN_WIDTH - 9) as string[];
+    return {
+      lines,
+      height: Math.max(5.6 * scale, 2 * scale + lines.length * lineHeight),
+    };
   });
 };
 
-const drawSessionGroup = (
+const HEADER_HEIGHT = 12.5;
+
+const sessionCardHeight = (rows: ExerciseRow[], scale: number) =>
+  HEADER_HEIGHT * scale +
+  rows.reduce((sum, row) => sum + row.height, 0) +
+  2.5 * scale;
+
+const buildLayout = (
   doc: jsPDF,
   params: DownloadWorkoutPdfParams,
-  startIndex: number,
-  startY: number,
-  maxY: number,
-) => {
-  const { schedule, scheduleDays, minutes, exerciseLimit, equipment, lang } =
-    params;
-  let y = startY;
-  let index = startIndex;
-  while (index < schedule.length) {
-    const session = schedule[index];
+  scale: number,
+): Layout => {
+  const { schedule, scheduleDays, exerciseLimit, equipment, lang } = params;
+  const cards: SessionCard[] = schedule.map((session, index) => {
     const dayLabel =
       scheduleDays[index]?.[lang] ||
       `${lang === "bg" ? "Ден" : "Day"} ${index + 1}`;
-    const rows = buildExerciseRows(doc, session, exerciseLimit, equipment, lang);
-    const height = sessionCardHeight(rows);
-    if (y + height > maxY && y > startY) break;
-    drawSessionCard(doc, session, dayLabel, minutes, rows, y, height, lang);
-    y += height + 4;
-    index += 1;
+    const rows = buildExerciseRows(
+      doc,
+      session,
+      exerciseLimit,
+      equipment,
+      lang,
+      scale,
+    );
+    return { session, dayLabel, rows, height: sessionCardHeight(rows, scale) };
+  });
+
+  const rows: CardRow[] = [];
+  for (let i = 0; i < cards.length; i += COLUMNS) {
+    const group = cards.slice(i, i + COLUMNS);
+    rows.push({
+      cards: group,
+      height: Math.max(...group.map((card) => card.height)),
+    });
   }
-  return index;
+
+  const gap = 4 * scale;
+  const totalHeight =
+    rows.reduce((sum, row) => sum + row.height, 0) +
+    gap * Math.max(0, rows.length - 1);
+
+  return { rows, totalHeight };
+};
+
+const drawSessionCard = (
+  doc: jsPDF,
+  card: SessionCard,
+  minutes: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  scale: number,
+  lang: "bg" | "en",
+) => {
+  const radius = 3.2 * scale;
+  const headerHeight = HEADER_HEIGHT * scale;
+
+  setFillColor(doc, COLORS.surface);
+  doc.roundedRect(x, y, width, height, radius, radius, "F");
+  setFillColor(doc, COLORS.surfaceAlt);
+  doc.roundedRect(x, y, width, headerHeight, radius, radius, "F");
+  doc.rect(x, y + headerHeight - 4 * scale, width, 4 * scale, "F");
+
+  setTextColor(doc, COLORS.green);
+  doc.setFontSize(6.2 * scale);
+  doc.text(card.dayLabel.toUpperCase(), x + 4 * scale, y + 4.6 * scale);
+  setTextColor(doc, COLORS.white);
+  doc.setFontSize(10 * scale);
+  const focusLines = doc.splitTextToSize(
+    card.session.focus[lang],
+    width - 8 * scale,
+  ) as string[];
+  doc.text(focusLines[0], x + 4 * scale, y + 10.2 * scale);
+  setTextColor(doc, COLORS.muted);
+  doc.setFontSize(6.4 * scale);
+  doc.text(`~${minutes} min`, x + width - 4 * scale, y + 7.2 * scale, {
+    align: "right",
+  });
+
+  let rowY = y + headerHeight + 2.2 * scale;
+  card.rows.forEach((row) => {
+    setTextColor(doc, COLORS.green);
+    doc.setFontSize(7.2 * scale);
+    doc.text("v", x + 4 * scale, rowY + 3 * scale);
+    setTextColor(doc, COLORS.white);
+    doc.setFontSize(7.2 * scale);
+    row.lines.forEach((line, lineIndex) =>
+      doc.text(line, x + 8 * scale, rowY + 3 * scale + lineIndex * 3.15 * scale),
+    );
+    rowY += row.height;
+  });
 };
 
 export const buildWorkoutPlanPDF = (params: DownloadWorkoutPdfParams) => {
@@ -241,24 +288,31 @@ export const buildWorkoutPlanPDF = (params: DownloadWorkoutPdfParams) => {
     COLORS.white,
   );
 
-  let sessionIndex = 0;
-  let startY = pillY + 17;
-  let section = plan.name[lang];
-  while (sessionIndex < schedule.length) {
-    const nextIndex = drawSessionGroup(doc, params, sessionIndex, startY, 280);
-    if (nextIndex === sessionIndex) break;
-    sessionIndex = nextIndex;
-    if (sessionIndex < schedule.length) {
-      addPage(doc, section);
-      startY = 15;
-    }
+  const startY = pillY + 17;
+  const availableHeight = FOOTER_Y - 3 - startY;
+
+  // Find the largest scale whose layout still fits in the space available
+  // below the header, so the whole plan always renders on a single page.
+  let layout = buildLayout(doc, params, SCALE_STEPS[SCALE_STEPS.length - 1]);
+  let scale = SCALE_STEPS[SCALE_STEPS.length - 1];
+  for (const step of SCALE_STEPS) {
+    const candidate = buildLayout(doc, params, step);
+    layout = candidate;
+    scale = step;
+    if (candidate.totalHeight <= availableHeight) break;
   }
 
-  const pageCount = doc.getNumberOfPages();
-  for (let page = 1; page <= pageCount; page += 1) {
-    doc.setPage(page);
-    drawFooter(doc, page, pageCount);
-  }
+  const gap = 4 * scale;
+  let y = startY;
+  layout.rows.forEach((row) => {
+    row.cards.forEach((card, columnIndex) => {
+      const x = PAGE_MARGIN + columnIndex * (COLUMN_WIDTH + CARD_GAP_X);
+      drawSessionCard(doc, card, minutes, x, y, COLUMN_WIDTH, row.height, scale, lang);
+    });
+    y += row.height + gap;
+  });
+
+  drawFooter(doc);
   return doc;
 };
 

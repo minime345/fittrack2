@@ -25,15 +25,16 @@ type Props = {
   sourceOptions: { source: ExcludedSource; label: string }[];
   showExcludedOptions: boolean;
   setShowExcludedOptions: (updater: (open: boolean) => boolean) => void;
+  hasCalculatedTarget: boolean;
 };
 
 export function PlanOverview(props: Props) {
   const { t, lang, baseCalories, proteinMin, proteinMax, goal, setGoal, goalLabels, diet, setDiet, planStyle, setPlanStyle, dietLabels,
-    dietIcons, excludedSources, setExcludedSources, sourceOptions, showExcludedOptions, setShowExcludedOptions } = props;
+    dietIcons, excludedSources, setExcludedSources, sourceOptions, showExcludedOptions, setShowExcludedOptions, hasCalculatedTarget } = props;
 
   return (
-    <div className="mb-10">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 text-center sm:text-left">
+    <div className="mb-6">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5 text-center sm:text-left">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-green-400/80">
           {lang === "bg" ? "Твоят седмичен режим" : "Your weekly nutrition plan"}
         </p>
@@ -43,7 +44,7 @@ export function PlanOverview(props: Props) {
         </p>
       </motion.div>
 
-      <div className="grid gap-4 lg:grid-cols-[0.9fr_1.6fr]">
+      <div className="grid items-start gap-4 lg:grid-cols-[0.72fr_1.6fr]">
         <div className="fit-surface relative overflow-hidden rounded-3xl border border-green-500/25 p-5 sm:p-6">
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-green-400/10 blur-3xl" />
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">{lang === "bg" ? "Дневна цел" : "Daily target"}</p>
@@ -63,15 +64,29 @@ export function PlanOverview(props: Props) {
               </p>
             </div>
           </div>
-          {baseCalories === 2000 && (
+          {!hasCalculatedTarget && (
             <Link href="/calculator" className="fit-secondary-button mt-4 flex items-center justify-between border border-yellow-400/20 px-3 py-2 text-xs text-yellow-200">
               <span>{t.Main.warning}</span><span aria-hidden="true">→</span>
             </Link>
           )}
         </div>
 
-        <div className="fit-surface rounded-3xl border border-white/10 p-5 sm:p-6">
-          <div className="grid gap-5 xl:grid-cols-2">
+        <details open className="fit-surface group rounded-3xl border border-white/10 p-5 sm:p-6">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:content-none">
+            <span>
+              <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-green-400">
+                {lang === "bg" ? "Настройки" : "Preferences"}
+              </span>
+              <span className="mt-1 block text-lg font-bold text-white">
+                {lang === "bg" ? "Персонализирай плана" : "Customize your plan"}
+              </span>
+              <span className="mt-1 block text-xs text-gray-400">
+                {goalLabels[goal]} · {dietLabels[diet]}
+              </span>
+            </span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-green-300 transition group-open:rotate-180" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="mt-5 grid gap-5 border-t border-white/10 pt-5 xl:grid-cols-2">
             <GoalSelector t={t} goal={goal} goalLabels={goalLabels} setGoal={setGoal} />
             <ExclusionFilter t={t} excludedSources={excludedSources} setExcludedSources={setExcludedSources} sourceOptions={sourceOptions} showExcludedOptions={showExcludedOptions} setShowExcludedOptions={setShowExcludedOptions} />
           </div>
@@ -123,23 +138,9 @@ export function PlanOverview(props: Props) {
               })}
             </div>
           </div>
-        </div>
+        </details>
       </div>
 
-      <details className="group mt-4 rounded-2xl border border-green-500/15 bg-green-500/[0.04] open:bg-gray-900/70">
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 marker:content-none">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-green-300" aria-hidden="true">?</span>
-          <span className="flex-1 text-sm font-semibold text-green-300">{t.Main.infoHeading}</span>
-          <span className="text-xs text-gray-500 transition group-open:rotate-180" aria-hidden="true">⌄</span>
-        </summary>
-        <ul className="grid gap-2 border-t border-white/5 px-4 py-4 sm:grid-cols-2">
-          {t.Main.infoItems.map((item: string, index: number) => (
-            <li key={index} className="flex gap-2 rounded-xl border border-white/5 bg-black/10 p-3 text-xs leading-relaxed text-gray-300">
-              <span className="mt-0.5 text-green-400" aria-hidden="true">✓</span><span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
     </div>
   );
 }

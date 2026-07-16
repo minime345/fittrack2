@@ -48,8 +48,14 @@ const refreshSavedRecipeData = (savedPlan: DayPlan[]): DayPlan[] => savedPlan.ma
 
 export default function PersonalPlanPage() {
   const searchParams = useSearchParams();
-  const requestedCalories = Number(searchParams.get("calories")) || 2000;
+  const queryCalories = Number(searchParams.get("calories"));
+  const hasQueryCalculatorValue =
+    Number.isFinite(queryCalories) && queryCalories > 0;
+  const requestedCalories = hasQueryCalculatorValue ? queryCalories : 2000;
   const [baseCalories, setBaseCalories] = useState(requestedCalories);
+  const [hasCalculatorProfile, setHasCalculatorProfile] = useState(
+    hasQueryCalculatorValue,
+  );
   const [savedProteinRange, setSavedProteinRange] = useState<[number, number] | null>(null);
  const currentYear = new Date().getFullYear();
 const [showShoppingList, setShowShoppingList] = useState(false);
@@ -102,7 +108,10 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
           proteinMin?: number | null;
           proteinMax?: number | null;
         };
-        if (Number.isFinite(calculatorProfile.calories)) calculatorCalories = calculatorProfile.calories!;
+        if (Number.isFinite(calculatorProfile.calories)) {
+          calculatorCalories = calculatorProfile.calories!;
+          setHasCalculatorProfile(true);
+        }
         if (Number.isFinite(calculatorProfile.proteinMin) && Number.isFinite(calculatorProfile.proteinMax)) {
           setSavedProteinRange([calculatorProfile.proteinMin!, calculatorProfile.proteinMax!]);
         }
@@ -175,6 +184,7 @@ const dietLabels: Record<Diet, string> = t.Main.diet;
     { source: "chicken", label: t.Main.meatOptions.noChicken },
     { source: "beef", label: t.Main.meatOptions.noBeef },
     { source: "pork", label: t.Main.meatOptions.noPork },
+    { source: "lamb", label: t.Main.meatOptions.noLamb },
     { source: "fish", label: t.Main.meatOptions.noFish },
     { source: "supplement", label: t.Main.meatOptions.noSupplements },
     { source: "vegan", label: t.Main.meatOptions.noVegan },
@@ -332,10 +342,10 @@ const changeMealWeight = (weight: number) => {
 };
 
   return (
-      <main className="fit-shell min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white font-sans">
+      <main className="fit-shell min-h-screen font-sans text-white">
        <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+      <section className="fit-page-section pt-8">
   <PlanOverview
     t={t} lang={lang} baseCalories={baseCalories} proteinMin={proteinMin} proteinMax={proteinMax}
     goal={goal} setGoal={setGoal} goalLabels={goalLabels} diet={diet} setDiet={setDiet}
@@ -343,32 +353,8 @@ const changeMealWeight = (weight: number) => {
     dietLabels={dietLabels} dietIcons={dietIcons} excludedSources={excludedSources}
     setExcludedSources={setExcludedSources} sourceOptions={sourceOptions}
     showExcludedOptions={showExcludedOptions} setShowExcludedOptions={setShowExcludedOptions}
+    hasCalculatedTarget={hasCalculatorProfile}
   />
-  <PlanGuide lang={lang} hasCalculatedTarget={searchParams.has("calories")} />
-  <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-green-500/15 bg-green-500/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <p className="text-sm font-semibold text-green-300">
-        {lang === "bg" ? "Този план е запазен в браузъра" : "This plan is saved in your browser"}
-      </p>
-      <p className="mt-1 text-xs leading-relaxed text-gray-400">
-        {lang === "bg"
-          ? "Обновява се при нови калории, цел, режим, стил или изключени храни. Навигацията в сайта не го променя."
-          : "It updates for new calories, goal, diet, style, or exclusions. Navigating the site does not change it."}
-      </p>
-    </div>
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-300">
-        ✓ {lang === "bg" ? "Автоматично запазване" : "Autosaved"}
-      </span>
-      <button
-        type="button"
-        onClick={regeneratePlan}
-        className="fit-secondary-button rounded-xl border border-green-500/30 px-3 py-2 text-xs font-semibold text-green-200"
-      >
-        ↻ {lang === "bg" ? "Обнови целия план" : "Refresh entire plan"}
-      </button>
-    </div>
-  </div>
   <div className="hidden">
   <motion.h1
     initial={{ opacity: 0, y: -10 }}
@@ -459,17 +445,30 @@ const changeMealWeight = (weight: number) => {
 
       {/* --- Ð”ÐµÑÐºÑ‚Ð¾Ð¿: Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ð° Ñ Ñ€Ð°Ð·Ð³Ñ€Ð°Ñ„ÑÐ²Ð°Ð½Ðµ --- */}
   </div>
-  <div id="weekly-plan" className="mb-3 flex flex-wrap items-center justify-between gap-2">
-    <h2 className="text-lg font-bold text-white sm:text-xl">
-      {lang === "bg" ? "Твоят седмичен план" : "Your weekly plan"}
-    </h2>
-    <div className="flex flex-wrap gap-2 text-[11px] text-gray-400">
+  <PlanGuide lang={lang} hasCalculatedTarget={hasCalculatorProfile} />
+  <div id="weekly-plan" className="mb-4 flex flex-wrap items-center justify-between gap-3 scroll-mt-24">
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-green-400">
+        ✓ {lang === "bg" ? "Запазва се автоматично" : "Saved automatically"}
+      </p>
+      <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">
+        {lang === "bg" ? "Твоят седмичен план" : "Your weekly plan"}
+      </h2>
+    </div>
+    <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
       <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
         {lang === "bg" ? "Натисни ястие за рецепта и порция" : "Select a meal for its recipe and portion"}
       </span>
       <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
         ↻ {lang === "bg" ? "сменя ястието" : "replaces the meal"}
       </span>
+      <button
+        type="button"
+        onClick={regeneratePlan}
+        className="fit-secondary-button rounded-xl border border-green-500/30 px-3 py-2 text-xs font-semibold text-green-200"
+      >
+        ↻ {lang === "bg" ? "Нов план" : "New plan"}
+      </button>
     </div>
   </div>
   <WeeklyTable
@@ -491,6 +490,27 @@ const changeMealWeight = (weight: number) => {
   openMeal={openMeal}
   replaceMeal={replaceMeal}
 />
+
+<details className="fit-surface group mt-6 overflow-hidden rounded-3xl border-green-500/20">
+  <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6">
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-500/15 text-xl text-green-300" aria-hidden="true">✓</span>
+    <span className="min-w-0 flex-1">
+      <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-green-400/80">
+        {lang === "bg" ? "Полезни възможности" : "Helpful features"}
+      </span>
+      <span className="mt-0.5 block text-base font-bold text-white sm:text-lg">{t.Main.infoHeading}</span>
+    </span>
+    <span className="text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
+  </summary>
+  <ul className="grid gap-2 border-t border-white/5 px-5 py-4 sm:grid-cols-2 sm:px-6">
+    {t.Main.infoItems.map((item, index) => (
+      <li key={index} className="flex gap-2 rounded-xl border border-white/5 bg-black/10 p-3 text-xs leading-relaxed text-gray-300">
+        <span className="mt-0.5 text-green-400" aria-hidden="true">✓</span>
+        <span>{item}</span>
+      </li>
+    ))}
+  </ul>
+</details>
 
 </section>
 

@@ -7,9 +7,9 @@ type PlanGuideProps = {
 
 const guideContent = {
   bg: {
-    eyebrow: "Кратко ръководство",
-    title: "Направи плана подходящ за теб",
-    intro: "Промените обновяват плана, а навигацията не го променя.",
+    eyebrow: "Нуждаеш се от помощ?",
+    title: "Как да използваш хранителния си план",
+    intro: "Отвори това ръководство, за да видиш как да настройваш, сменяш и запазваш ястията си.",
     calculator: "Отвори калкулатора",
     calculated: "Калориите са взети от калкулатора",
     steps: [
@@ -22,9 +22,9 @@ const guideContent = {
     tip: "Съвет: планът се пази, когато отвориш рецепта и се върнеш назад.",
   },
   en: {
-    eyebrow: "Quick guide",
-    title: "Make the plan work for you",
-    intro: "Changes update the plan; navigation leaves it unchanged.",
+    eyebrow: "Need help?",
+    title: "How to use your meal plan",
+    intro: "Open this guide to learn how to customize, replace, and save your meals.",
     calculator: "Open calculator",
     calculated: "Calories imported from the calculator",
     steps: [
@@ -44,7 +44,7 @@ export function PlanGuide({ lang, hasCalculatedTarget }: PlanGuideProps) {
   const copy = guideContent[lang];
 
   return (
-    <details open className="group mb-6 overflow-hidden rounded-3xl border border-green-500/20 bg-gray-900/65 shadow-lg">
+    <details className="fit-surface group mb-2 overflow-hidden rounded-3xl border-green-500/20">
       <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-500/15 text-xl text-green-300">?</span>
         <span className="min-w-0 flex-1">

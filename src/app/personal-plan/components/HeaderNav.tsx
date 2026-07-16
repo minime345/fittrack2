@@ -1,5 +1,6 @@
 ﻿import { Menu } from "lucide-react";
 import { Logo, NavLink } from "./NavBits";
+import { AuthButton } from "./AuthButton";
 
 type HeaderNavProps = {
   t: any;
@@ -35,6 +36,7 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
           >
             {lang === "bg" ? "BG" : "EN"}
           </button>
+          <div className="hidden md:block"><AuthButton lang={lang} /></div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
@@ -62,6 +64,7 @@ export function HeaderNav({ t, lang, toggleLang, isOpen, setIsOpen }: HeaderNavP
             <NavLink href="/plans" label={t.nav.plans} onNavigate={() => setIsOpen(false)} />
             <NavLink href="/workouts" label={t.nav.workouts} onNavigate={() => setIsOpen(false)} />
             <NavLink href="/meals" label={t.nav.meals} onNavigate={() => setIsOpen(false)} />
+            <AuthButton lang={lang} mobile onNavigate={() => setIsOpen(false)} />
           </nav>
         </div>
       )}

@@ -610,6 +610,71 @@ export const programs: Program[] = [
     ],
   },
   {
+    id: "bodybuilding",
+    icon: "BB",
+    name: text("Класически бодибилдинг", "Classic Bodybuilding"),
+    summary: text(
+      "Традиционен сплит по мускулни групи за максимален обем и хипертрофия в 4 или 5 дни.",
+      "A traditional muscle-group split for maximum volume and hypertrophy across 4 or 5 days.",
+    ),
+    level: text("Средно и напреднало ниво", "Intermediate to advanced"),
+    days: [4, 5],
+    duration: [45, 75],
+    goals: ["gain", "maintain"],
+    experience: ["intermediate", "advanced"],
+    equipment: ["gym", "dumbbells"],
+    sessions: [
+      {
+        focus: text("Гърди и трицепс", "Chest & Triceps"),
+        exercises: [
+          ex("push", "4 x 8-12"),
+          ex("dip", "3 x 8-12"),
+          ex("verticalPush", "3 x 10-12"),
+          ex("arms", "3 x 12-15"),
+          ex("core", "3 sets"),
+        ],
+      },
+      {
+        focus: text("Гръб и бицепс", "Back & Biceps"),
+        exercises: [
+          ex("pull", "4 x 8-12"),
+          ex("pullUp", "3 x 6-12"),
+          ex("verticalPull", "3 x 10-12"),
+          ex("arms", "3 x 12-15"),
+          ex("core", "3 sets"),
+        ],
+      },
+      {
+        focus: text("Крака", "Legs"),
+        exercises: [
+          ex("squat", "4 x 8-12"),
+          ex("hinge", "3 x 8-10"),
+          ex("lunge", "3 x 10/side"),
+          ex("glutes", "3 x 10-15"),
+          ex("calves", "4 x 15-20"),
+        ],
+      },
+      {
+        focus: text("Рамене и корем", "Shoulders & Abs"),
+        exercises: [
+          ex("verticalPush", "4 x 8-10"),
+          ex("shoulders", "4 x 12-15"),
+          ex("pull", "3 x 12-15"),
+          ex("core", "4 sets"),
+        ],
+      },
+      {
+        focus: text("Ръце и корем", "Arms & Core"),
+        exercises: [
+          ex("arms", "4 x 12-15"),
+          ex("dip", "4 x 10-15"),
+          ex("calves", "3 x 15-20"),
+          ex("core", "4 sets"),
+        ],
+      },
+    ],
+  },
+  {
     id: "hyrox",
     icon: "HX",
     name: text("HYROX подготовка", "HYROX Training"),
@@ -728,6 +793,104 @@ export const programs: Program[] = [
         exercises: [
           ex("shadowBoxing", "20-30 min easy"),
           ex("mobility", "15 min"),
+        ],
+      },
+    ],
+  },
+  {
+    id: "hiit-circuit",
+    icon: "HIIT",
+    name: text("HIIT кръгова тренировка", "HIIT Circuit"),
+    summary: text(
+      "Кратки интервали с висока интензивност, редувани с възстановяване, за ефективна тренировка на цялото тяло.",
+      "Short high-intensity intervals alternated with recovery for a time-efficient full-body workout.",
+    ),
+    level: text("Всички нива", "All levels"),
+    days: [2, 3, 4],
+    duration: [20, 45],
+    goals: ["lose", "maintain"],
+    experience: ["beginner", "intermediate", "advanced"],
+    equipment: ["bodyweight", "home", "gym", "dumbbells", "kettlebell"],
+    sessions: [
+      {
+        focus: text("Цяло тяло", "Full-body Circuit"),
+        exercises: [
+          ex("squat", "4 x 40 sec / 20 sec easy"),
+          ex("push", "4 x 40 sec / 20 sec easy"),
+          ex("pull", "4 x 40 sec / 20 sec easy"),
+          ex("burpee", "4 x 30 sec / 30 sec easy"),
+          ex("core", "3 sets"),
+        ],
+      },
+      {
+        focus: text("Долна част и кардио", "Lower Body & Cardio"),
+        exercises: [
+          ex("lunge", "4 x 40 sec / 20 sec easy"),
+          ex("glutes", "4 x 40 sec / 20 sec easy"),
+          ex("jumpRope", "6 x 1 min / 30 sec easy"),
+          ex("core", "3 sets"),
+        ],
+      },
+      {
+        focus: text("Сила и кондиция", "Strength & Conditioning"),
+        exercises: [
+          ex("hinge", "4 x 10-15"),
+          ex("verticalPush", "4 x 8-12"),
+          ex("carry", "4 rounds"),
+          ex("intervals", "8 x 30 sec / 60 sec easy"),
+        ],
+      },
+      {
+        focus: text("Кратък кондиционен кръг", "Quick Conditioning Circuit"),
+        exercises: [
+          ex("kettlebellSwing", "5 x 15"),
+          ex("boxJump", "5 x 6"),
+          ex("push", "5 x 10"),
+          ex("mobility", "10 min"),
+        ],
+      },
+    ],
+  },
+  {
+    id: "beginner-5k",
+    icon: "5K",
+    name: text("От ходене до 5 км", "Walk to 5K"),
+    summary: text(
+      "Постепенна тридневна програма за начинаещи, която преминава от редуване на ходене и бягане към 30 минути непрекъснато леко бягане.",
+      "A gradual three-day beginner plan that progresses from walk-run intervals toward 30 minutes of continuous easy running.",
+    ),
+    level: text("Начинаещи", "Beginner"),
+    days: [3],
+    duration: [25, 40],
+    goals: ["lose", "maintain"],
+    experience: ["beginner"],
+    equipment: ["bodyweight", "home"],
+    sessions: [
+      {
+        focus: text("Кратки интервали", "Short Run-Walk Intervals"),
+        exercises: [
+          ex("cardio", "5 min brisk walk"),
+          ex("running", "8 x 1 min run / 90 sec walk"),
+          ex("cardio", "5 min easy walk"),
+          ex("mobility", "5-8 min"),
+        ],
+      },
+      {
+        focus: text("Изграждане на ритъм", "Build Your Rhythm"),
+        exercises: [
+          ex("cardio", "5 min brisk walk"),
+          ex("running", "6 x 2 min run / 2 min walk"),
+          ex("cardio", "5 min easy walk"),
+          ex("core", "2 easy sets"),
+        ],
+      },
+      {
+        focus: text("По-дълго леко усилие", "Longer Easy Effort"),
+        exercises: [
+          ex("cardio", "5 min brisk walk"),
+          ex("running", "3 x 5 min easy / 3 min walk"),
+          ex("cardio", "5 min easy walk"),
+          ex("mobility", "8 min"),
         ],
       },
     ],
