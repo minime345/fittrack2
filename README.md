@@ -40,7 +40,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 1. Create a Supabase project.
 2. Copy `.env.example` to `.env.local` and fill in the project URL and publishable key from **Project Settings → API**.
 3. Run `supabase/migrations/202607160001_fittrack_accounts.sql` in the Supabase SQL editor.
-4. In **Authentication → URL Configuration**, set the Site URL and allow `http://localhost:3000/auth/callback` and `https://YOUR_DOMAIN/auth/callback`.
+4. In **Authentication → URL Configuration**, set the production Site URL to `https://fittrack2-pi.vercel.app` and allow these redirect URLs:
+   - `http://localhost:3000/auth/callback`
+   - `https://fittrack2-pi.vercel.app/auth/callback`
 5. Keep email confirmation enabled and configure custom SMTP before production use.
 6. In **Authentication → Password Security**, require at least eight characters and enable stronger character requirements.
 

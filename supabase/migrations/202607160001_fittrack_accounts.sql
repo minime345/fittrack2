@@ -78,12 +78,28 @@ alter table public.saved_workout_plans enable row level security;
 alter table public.recipe_preferences enable row level security;
 alter table public.custom_recipes enable row level security;
 
-create policy "profiles_owned" on public.profiles for all using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
-create policy "weight_entries_owned" on public.weight_entries for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
-create policy "meal_plans_owned" on public.saved_meal_plans for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
-create policy "workout_plans_owned" on public.saved_workout_plans for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
-create policy "recipe_preferences_owned" on public.recipe_preferences for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
-create policy "custom_recipes_owned" on public.custom_recipes for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'profiles' and policyname = 'profiles_owned') then
+    create policy "profiles_owned" on public.profiles for all using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'weight_entries' and policyname = 'weight_entries_owned') then
+    create policy "weight_entries_owned" on public.weight_entries for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_meal_plans' and policyname = 'meal_plans_owned') then
+    create policy "meal_plans_owned" on public.saved_meal_plans for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_workout_plans' and policyname = 'workout_plans_owned') then
+    create policy "workout_plans_owned" on public.saved_workout_plans for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'recipe_preferences' and policyname = 'recipe_preferences_owned') then
+    create policy "recipe_preferences_owned" on public.recipe_preferences for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'custom_recipes' and policyname = 'custom_recipes_owned') then
+    create policy "custom_recipes_owned" on public.custom_recipes for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+  end if;
+end
+$$;
 
 create or replace function public.create_profile_for_new_user()
 returns trigger language plpgsql security definer set search_path = '' as $$
@@ -94,6 +110,11 @@ begin
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users
-for each row execute procedure public.create_profile_for_new_user();
+do $$
+begin
+  if not exists (select 1 from pg_trigger where tgname = 'on_auth_user_created') then
+    create trigger on_auth_user_created after insert on auth.users
+    for each row execute procedure public.create_profile_for_new_user();
+  end if;
+end
+$$;
