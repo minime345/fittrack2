@@ -89,6 +89,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
   const [selectedLocation, setSelectedLocation] = useState<{ dayIndex: number; mealType: PlanMealType } | null>(null);
 
   const [weeklyPlan, setWeeklyPlan] = useState<DayPlan[]>([]);
+  const [customMeals, setCustomMeals] = useState<Meal[]>([]);
   const [planStorageReady, setPlanStorageReady] = useState(false);
   const [generatedSettings, setGeneratedSettings] = useState<{
     baseCalories: number;
@@ -100,6 +101,11 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
 
   useEffect(() => {
     try {
+      const customMealsRaw = localStorage.getItem("fittrack-custom-meals-v1");
+      if (customMealsRaw) {
+        const savedCustomMeals = JSON.parse(customMealsRaw) as Meal[];
+        if (Array.isArray(savedCustomMeals)) setCustomMeals(savedCustomMeals);
+      }
       let calculatorCalories: number | null = null;
       const calculatorRaw = localStorage.getItem("fittrack-calculator-profile-v1");
       if (calculatorRaw) {
@@ -194,6 +200,7 @@ const dietLabels: Record<Diet, string> = t.Main.diet;
 
   const proteinMin = parseInt(searchParams.get("proteinMin") || String(savedProteinRange?.[0] ?? 100), 10);
   const proteinMax = parseInt(searchParams.get("proteinMax") || String(savedProteinRange?.[1] ?? 150), 10);
+  const availableMeals = [...meals, ...customMeals];
 
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   const filterMeatFromPool = (mealsList: typeof meals): typeof meals => filterByMeatType(mealsList, excludedSources);
@@ -213,7 +220,7 @@ const regeneratePlan = () => {
   const dailyCalories = getTargetCalories(goal, baseCalories);
 
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð´Ð¸ÐµÑ‚Ð°
-  let filtered = diet === "all" ? meals : meals.filter((m) => m.categories.includes(diet));
+  let filtered = diet === "all" ? availableMeals : availableMeals.filter((m) => m.categories.includes(diet));
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   filtered = filterMeatFromPool(filtered);
 
@@ -237,7 +244,7 @@ useEffect(() => {
   if (weeklyPlan.length !== 7 || settingsChanged) regeneratePlan();
   // Regenerate only when inputs change; the saved plan is reused after navigation.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [planStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings]);
+}, [planStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings, customMeals]);
 
 useEffect(() => {
   if (!planStorageReady || weeklyPlan.length !== 7 || !generatedSettings) return;
@@ -256,7 +263,7 @@ const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) 
   const oldMeal = day?.meals[mealType].find((meal) => meal.slug === oldSlug);
   if (!day || !oldMeal) return;
   const portionCount = day.meals[mealType].filter((meal) => meal.slug === oldSlug).length;
-  let pool = diet === "all" ? meals : meals.filter((meal) => meal.categories.includes(diet));
+  let pool = diet === "all" ? availableMeals : availableMeals.filter((meal) => meal.categories.includes(diet));
   pool = filterMeatFromPool(pool);
   const used = new Set(Object.values(day.meals).flat().map((meal) => meal.slug));
   const slotKey = `${dayIndex}-${mealType}`;

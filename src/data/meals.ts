@@ -29,7 +29,7 @@ export type Meal = {
 };
 
 
-export const meals = [
+export const meals: Meal[] = [
  
   {
     slug: "oatmeal-banana-pb",
