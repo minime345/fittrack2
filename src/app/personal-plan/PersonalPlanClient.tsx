@@ -29,6 +29,8 @@ import { SiteFooter } from "./components/SiteFooter";
 import { MealModal } from "./components/MealModal";
 import { PlanOverview } from "./components/PlanOverview";
 import { PlanGuide } from "./components/PlanGuide";
+import { AccountPlanPrompt } from "./components/AccountPlanPrompt";
+import { WorkoutPlanPrompt } from "./components/WorkoutPlanPrompt";
 
 const refreshSavedRecipeData = (savedPlan: DayPlan[]): DayPlan[] => savedPlan.map((day) => {
   const refreshedMeals = Object.fromEntries(
@@ -89,7 +91,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
   const [selectedLocation, setSelectedLocation] = useState<{ dayIndex: number; mealType: PlanMealType } | null>(null);
 
   const [weeklyPlan, setWeeklyPlan] = useState<DayPlan[]>([]);
-  const [customMeals, setCustomMeals] = useState<Meal[]>([]);
+  const [likedMealSlugs, setLikedMealSlugs] = useState<string[]>([]);
   const [planStorageReady, setPlanStorageReady] = useState(false);
   const [generatedSettings, setGeneratedSettings] = useState<{
     baseCalories: number;
@@ -101,10 +103,10 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
 
   useEffect(() => {
     try {
-      const customMealsRaw = localStorage.getItem("fittrack-custom-meals-v1");
-      if (customMealsRaw) {
-        const savedCustomMeals = JSON.parse(customMealsRaw) as Meal[];
-        if (Array.isArray(savedCustomMeals)) setCustomMeals(savedCustomMeals);
+      const likedMealsRaw = localStorage.getItem("fittrack-liked-meals-v1");
+      if (likedMealsRaw) {
+        const savedLikedMeals = JSON.parse(likedMealsRaw) as string[];
+        if (Array.isArray(savedLikedMeals)) setLikedMealSlugs(savedLikedMeals);
       }
       let calculatorCalories: number | null = null;
       const calculatorRaw = localStorage.getItem("fittrack-calculator-profile-v1");
@@ -200,7 +202,17 @@ const dietLabels: Record<Diet, string> = t.Main.diet;
 
   const proteinMin = parseInt(searchParams.get("proteinMin") || String(savedProteinRange?.[0] ?? 100), 10);
   const proteinMax = parseInt(searchParams.get("proteinMax") || String(savedProteinRange?.[1] ?? 150), 10);
-  const availableMeals = [...meals, ...customMeals];
+  const preferredPool = (eligibleMeals: Meal[]): Meal[] => {
+    if (!likedMealSlugs.length) return eligibleMeals;
+    const preferred = eligibleMeals.filter((meal) => likedMealSlugs.includes(meal.slug));
+    if (!preferred.length) return eligibleMeals;
+    const pool = [...preferred];
+    (["breakfast", "lunch", "dinner"] as PlanMealType[]).forEach((type) => {
+      if (pool.some((meal) => meal.mealType.includes(type))) return;
+      eligibleMeals.filter((meal) => meal.mealType.includes(type)).slice(0, 3).forEach((meal) => pool.push(meal));
+    });
+    return Array.from(new Map(pool.map((meal) => [meal.slug, meal])).values());
+  };
 
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   const filterMeatFromPool = (mealsList: typeof meals): typeof meals => filterByMeatType(mealsList, excludedSources);
@@ -220,9 +232,10 @@ const regeneratePlan = () => {
   const dailyCalories = getTargetCalories(goal, baseCalories);
 
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð´Ð¸ÐµÑ‚Ð°
-  let filtered = diet === "all" ? availableMeals : availableMeals.filter((m) => m.categories.includes(diet));
+  let filtered = diet === "all" ? meals : meals.filter((m) => m.categories.includes(diet));
   // Ð¤Ð¸Ð»Ñ‚Ñ€Ð¸Ñ€Ð°Ð½Ðµ Ð¿Ð¾ Ð¼ÐµÑÐ¾
   filtered = filterMeatFromPool(filtered);
+  filtered = preferredPool(filtered);
 
   // Ð“ÐµÐ½ÐµÑ€Ð¸Ñ€Ð°Ð½Ðµ Ð½Ð° 7-Ð´Ð½ÐµÐ²ÐµÐ½ Ð¿Ð»Ð°Ð½
   const weekPlan = generateWeekPlan(filtered, dailyCalories, planStyle);
@@ -244,7 +257,7 @@ useEffect(() => {
   if (weeklyPlan.length !== 7 || settingsChanged) regeneratePlan();
   // Regenerate only when inputs change; the saved plan is reused after navigation.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [planStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings, customMeals]);
+}, [planStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings, likedMealSlugs]);
 
 useEffect(() => {
   if (!planStorageReady || weeklyPlan.length !== 7 || !generatedSettings) return;
@@ -255,6 +268,14 @@ useEffect(() => {
   }));
 }, [weeklyPlan, swapHistory, generatedSettings, planStorageReady]);
 
+useEffect(() => {
+  if (!planStorageReady || weeklyPlan.length !== 7 || window.location.hash !== "#weekly-plan") return;
+  const timeout = window.setTimeout(() => {
+    document.getElementById("weekly-plan")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 120);
+  return () => window.clearTimeout(timeout);
+}, [planStorageReady, weeklyPlan.length]);
+
 const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) => {
   const target = generatedSettings
     ? getTargetCalories(generatedSettings.goal, generatedSettings.baseCalories)
@@ -263,8 +284,9 @@ const replaceMeal = (dayIndex: number, mealType: PlanMealType, oldSlug: string) 
   const oldMeal = day?.meals[mealType].find((meal) => meal.slug === oldSlug);
   if (!day || !oldMeal) return;
   const portionCount = day.meals[mealType].filter((meal) => meal.slug === oldSlug).length;
-  let pool = diet === "all" ? availableMeals : availableMeals.filter((meal) => meal.categories.includes(diet));
+  let pool = diet === "all" ? meals : meals.filter((meal) => meal.categories.includes(diet));
   pool = filterMeatFromPool(pool);
+  pool = preferredPool(pool);
   const used = new Set(Object.values(day.meals).flat().map((meal) => meal.slug));
   const slotKey = `${dayIndex}-${mealType}`;
   const alreadyShown = new Set(swapHistory[slotKey] || []);
@@ -498,31 +520,10 @@ const changeMealWeight = (weight: number) => {
   replaceMeal={replaceMeal}
 />
 
-<details className="fit-surface group mt-6 overflow-hidden rounded-3xl border-green-500/20">
-  <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6">
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-500/15 text-xl text-green-300" aria-hidden="true">✓</span>
-    <span className="min-w-0 flex-1">
-      <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-green-400/80">
-        {lang === "bg" ? "Полезни възможности" : "Helpful features"}
-      </span>
-      <span className="mt-0.5 block text-base font-bold text-white sm:text-lg">{t.Main.infoHeading}</span>
-    </span>
-    <span className="text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
-  </summary>
-  <ul className="grid gap-2 border-t border-white/5 px-5 py-4 sm:grid-cols-2 sm:px-6">
-    {t.Main.infoItems.map((item, index) => (
-      <li key={index} className="flex gap-2 rounded-xl border border-white/5 bg-black/10 p-3 text-xs leading-relaxed text-gray-300">
-        <span className="mt-0.5 text-green-400" aria-hidden="true">✓</span>
-        <span>{item}</span>
-      </li>
-    ))}
-  </ul>
-</details>
-
 </section>
 
 {/* Ð‘ÑƒÑ‚Ð¾Ð½Ð¸Ñ‚Ðµ Ð´Ð¾Ð»Ñƒ */} 
-<footer id="plan-actions" className="max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 gap-3 sm:grid-cols-2"> 
+<footer id="plan-actions" className="max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
   <button onClick={handleDownloadPDF} 
   className="fit-primary-button w-full rounded-xl bg-green-600 px-6 py-3 text-left text-white shadow transition-colors hover:bg-green-700" >
      <span className="block font-semibold">{t.Main.downloadPdf}</span>
@@ -531,7 +532,7 @@ const changeMealWeight = (weight: number) => {
       className="fit-secondary-button w-full rounded-xl border border-green-500/30 px-6 py-3 text-left text-white transition-colors" >
          <span className="block font-semibold">{t.Main.shoppingListBtn}</span>
          <span className="mt-0.5 block text-xs font-normal text-gray-400">{lang === "bg" ? "Количества за всички избрани порции" : "Quantities for all selected portions"}</span>
-         </button> 
+         </button>
          </footer>
          <ShoppingListSection
            t={t}
@@ -540,6 +541,9 @@ const changeMealWeight = (weight: number) => {
            items={generateShoppingList(weeklyPlan, lang)}
            onClose={() => setShowShoppingList(false)}
          />
+
+      <AccountPlanPrompt lang={lang} />
+      <WorkoutPlanPrompt lang={lang} />
 
       {/* Footer ÑÐµÐºÑ†Ð¸Ñ */}
 {/* Footer */}

@@ -111,7 +111,7 @@ export default function Home() {
   };
 
   return (
-    <main className="fit-shell min-h-screen text-white">
+    <main className="fit-shell fit-home-theme min-h-screen text-white">
       <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <section className="fit-page-hero">
@@ -207,7 +207,7 @@ export default function Home() {
       </section>
 
       <section className="fit-page-section pb-14">
-        <div className="rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-7 text-center sm:p-10">
+        <div className="fit-callout rounded-3xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-teal-500/5 p-7 text-center sm:p-10">
           <h2 className="text-2xl font-black sm:text-3xl">{c.finalTitle}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">{c.finalText}</p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">

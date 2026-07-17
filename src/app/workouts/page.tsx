@@ -117,8 +117,8 @@ export default function WorkoutsPage() {
       />
 
       <section className="fit-page-hero pb-8">
-        <div className="grid items-start gap-7 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="pt-2">
+        <div className="grid min-w-0 items-start gap-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="min-w-0 pt-2">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-green-400">
               {lang === "bg"
                 ? "Персонална тренировъчна седмица"

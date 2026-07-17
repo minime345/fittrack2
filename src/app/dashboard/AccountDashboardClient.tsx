@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { KeyRound } from "lucide-react";
+import { ArrowRight, BookOpen, Calculator, Dumbbell, KeyRound, Salad, Sparkles } from "lucide-react";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
 import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
 import { calculateTotal, getTargetCalories, scaleMeal } from "@/app/personal-plan/planLogic";
 import type { DayPlan, Diet, ExcludedSource, Goal, PlanStyle } from "@/app/personal-plan/types";
 import { translations, type Lang } from "@/lib/translations-plans";
 import { createClient } from "@/lib/supabase/client";
-import { CustomMealBuilder } from "./CustomMealBuilder";
+import { MealPreferencePicker } from "./MealPreferencePicker";
 
 type CalculatorProfile = {
   age?: number | null;
@@ -36,12 +36,9 @@ type StoredPlan = {
 
 type Props = {
   userId: string;
-  email: string;
   firstName: string;
   profileGoal: Goal | null;
-  unitSystem: string;
   weights: { weight_kg: number | string; recorded_on: string }[];
-  counts: { mealPlans: number; workoutPlans: number; favorites: number; recipes: number };
 };
 
 const calculateProfile = (profile: CalculatorProfile, weight: number) => {
@@ -75,7 +72,7 @@ const rescalePlan = (plan: DayPlan[], ratio: number): DayPlan[] => plan.map((day
   return { meals: adjustedMeals, total: calculateTotal(adjustedMeals) };
 });
 
-export function AccountDashboardClient({ userId, email, firstName, profileGoal, unitSystem, weights, counts }: Props) {
+export function AccountDashboardClient({ userId, firstName, profileGoal, weights }: Props) {
   const [lang, setLang] = useState<Lang>("en");
   const [isOpen, setIsOpen] = useState(false);
   const [calculator, setCalculator] = useState<CalculatorProfile | null>(null);
@@ -187,18 +184,25 @@ export function AccountDashboardClient({ userId, email, firstName, profileGoal, 
   return (
     <main className="fit-shell min-h-screen text-white">
       <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        <section className="grid items-end gap-6 lg:grid-cols-[1fr_auto]">
-          <div><p className="fit-eyebrow">Your FitTrack account</p><h1 className="fit-title-gradient mt-3 text-4xl font-black sm:text-5xl">Welcome, {firstName}</h1><p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">Your measurements, progress, and current plans now sit alongside the same FitTrack tools and navigation you use everywhere else.</p></div>
-          <Link href="/auth/reset-password" className="fit-secondary-button flex min-h-11 items-center gap-2 px-4 py-3 text-sm font-bold text-green-300"><KeyRound className="h-4 w-4" /> Account security</Link>
+      <div className="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 sm:py-11">
+        <section className="grid items-end gap-5 sm:grid-cols-[1fr_auto]">
+          <div className="min-w-0"><p className="fit-eyebrow">Your FitTrack account</p><h1 className="fit-title-gradient mt-2 text-3xl font-black sm:text-5xl">Welcome, {firstName}</h1><p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-400">See how you are progressing, update your goal, and keep your nutrition plan aligned with your current needs.</p></div>
+          <Link href="/auth/reset-password" className="fit-secondary-button flex min-h-11 w-fit items-center gap-2 px-4 py-3 text-xs font-bold text-green-300"><KeyRound className="h-4 w-4" /> Account security</Link>
         </section>
 
-        <nav className="mt-7 flex flex-wrap gap-x-5 gap-y-2 border-y border-white/10 py-4 text-sm font-bold text-gray-400" aria-label="Account sections">
-          <a href="#plan-settings" className="hover:text-green-300">Plan settings</a><a href="#custom-meals" className="hover:text-green-300">Custom meals</a><Link href="/personal-plan" className="hover:text-green-300">Current plan</Link><Link href="/calculator" className="hover:text-green-300">Calculator</Link><Link href="/workouts" className="hover:text-green-300">Workouts</Link>
-        </nav>
+        <section className="mt-7 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+          <ProgressCard weights={weights} featured />
+          <div className="grid grid-cols-2 gap-3">
+            <OverviewStat label="Current target" value={activePlan ? `${getTargetCalories(activePlan.goal, activePlan.baseCalories)}` : calculator?.calories ? `${calculator.calories}` : "—"} suffix="kcal" />
+            <OverviewStat label="Goal" value={goal} />
+            <OverviewStat label="Plan" value={activePlan ? "7 days" : "None"} />
+            <OverviewStat label="Meal choices" value="Editable" />
+          </div>
+        </section>
 
-        <section className="mt-8 grid items-start gap-8 lg:grid-cols-2">
-          <div id="plan-settings" className="fit-surface scroll-mt-24 rounded-3xl p-5 sm:p-6">
+        <div className="mb-4 mt-9"><p className="fit-eyebrow">Personalize</p><h2 className="mt-1 text-2xl font-black">Keep your plan matched to you</h2></div>
+        <section className="grid min-w-0 items-start gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div id="plan-settings" className="fit-surface scroll-mt-24 rounded-3xl p-5 sm:p-7">
             <div className="grid grid-cols-2 gap-x-4 gap-y-5 border-b border-white/10 pb-5 sm:grid-cols-4">
               <Summary label="Weight" value={latestWeight ? `${latestWeight.weight_kg} kg` : calculator?.weight ? `${calculator.weight} kg` : "—"} />
               <Summary label="Target" value={activePlan ? `${getTargetCalories(activePlan.goal, activePlan.baseCalories)} kcal` : calculator?.calories ? `${calculator.calories} kcal` : "—"} />
@@ -206,23 +210,27 @@ export function AccountDashboardClient({ userId, email, firstName, profileGoal, 
               <Summary label="Goal" value={goal} />
             </div>
             <form onSubmit={adjustPlan} className="mt-6">
-            <p className="fit-eyebrow">Update and adjust</p><h2 className="mt-2 text-2xl font-black">Recalculate your current plan</h2>
-            <p className="mt-2 text-sm leading-relaxed text-gray-400">Enter your current weight and goal. We recalculate your calorie needs from the measurements already saved in the calculator, then resize the portions in your existing plan.</p>
+            <p className="fit-eyebrow">Plan settings</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Update weight and goal</h2>
+            <p className="mt-1 text-xs leading-relaxed text-gray-500">Your calories and existing portions update automatically.</p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-semibold text-gray-200">Current weight<div className="mt-2 flex min-h-12 items-center rounded-xl border border-white/10 bg-black/20 px-3 focus-within:border-green-400"><input type="number" min="20" max="500" step="0.1" required value={weight} onChange={(event) => setWeight(event.target.value)} className="min-w-0 flex-1 bg-transparent outline-none" /><span className="text-xs text-gray-500">kg</span></div></label>
               <label className="text-sm font-semibold text-gray-200">Current goal<select value={goal} onChange={(event) => setGoal(event.target.value as Goal)} className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-gray-950 px-3 outline-none focus:border-green-400"><option value="lose">Lose weight</option><option value="maintain">Maintain weight</option><option value="gain">Gain weight</option></select></label>
             </div>
-            <div className="mt-4 rounded-2xl border border-white/5 bg-black/15 p-4 text-xs text-gray-400">
+            <div className="mt-4 border-t border-white/10 pt-4 text-xs text-gray-500">
               {calculator ? <span>Using: {calculator.age ?? "—"} years · {calculator.height ?? "—"} cm · activity {calculator.activity ?? "—"} · current maintenance {calculator.calories ?? "—"} kcal</span> : <span>No calculator profile found in this browser. <Link href="/calculator" className="font-bold text-green-300">Complete the calculator →</Link></span>}
             </div>
-            <button disabled={saving} className="fit-primary-button mt-5 min-h-12 w-full px-5 font-black disabled:opacity-60">{saving ? "Updating…" : activePlan ? "Update weight, goal, and plan portions" : "Save weight and new calorie target"}</button>
+            <button disabled={saving} className="fit-primary-button mt-5 min-h-11 w-full px-5 text-sm font-black disabled:opacity-60">{saving ? "Updating…" : activePlan ? "Update my plan" : "Save new target"}</button>
             {message && <p role="status" className="mt-3 rounded-xl border border-green-500/15 bg-green-500/5 p-3 text-xs text-green-200">{message}</p>}
             </form>
-            <p className="mt-5 border-t border-white/10 pt-4 text-xs leading-relaxed text-gray-500">{email} · {unitSystem} units · {activePlan ? `${activePlan.diet} plan averaging ${planCalories || "—"} kcal/day` : "no generated plan yet"}</p>
-            <Link href={activePlan ? "/personal-plan#weekly-plan" : "/personal-plan"} className="fit-secondary-button mt-5 flex min-h-11 items-center justify-between px-4 py-3 text-sm font-bold text-green-300"><span>{activePlan ? "Open current meal plan" : "Generate a meal plan"}</span><span>→</span></Link>
           </div>
-          <div className="fit-surface rounded-3xl p-5 sm:p-6"><CustomMealBuilder userId={userId} /></div>
+          <div className="min-w-0">
+            <section id="meal-preferences" className="fit-surface min-w-0 scroll-mt-24 rounded-3xl p-5 sm:p-7"><MealPreferencePicker userId={userId} compact /></section>
+            {activePlan
+              ? <CompactPlanPreview plan={activePlan} />
+              : <Link href="/personal-plan" className="fit-surface fit-card-interactive mt-4 flex min-h-32 items-center justify-center rounded-3xl p-6 text-center"><span><span className="block text-lg font-black">No current meal plan</span><span className="mt-2 block text-sm text-green-300">Generate your plan →</span></span></Link>}
+          </div>
         </section>
+        <HelpfulLinks />
       </div>
       <SiteFooter t={t} currentYear={new Date().getFullYear()} />
     </main>
@@ -230,3 +238,33 @@ export function AccountDashboardClient({ userId, email, firstName, profileGoal, 
 }
 
 function Summary({ label, value }: { label: string; value: string }) { return <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{label}</p><p className="mt-1 truncate text-base font-black capitalize text-white">{value}</p></div>; }
+
+function ProgressCard({ weights, featured = false }: { weights: { weight_kg: number | string; recorded_on: string }[]; featured?: boolean }) {
+  const latest = weights[0];
+  const previous = weights[1];
+  const change = latest && previous ? Number(latest.weight_kg) - Number(previous.weight_kg) : null;
+  return <section className={`${featured ? "fit-surface rounded-3xl" : ""} p-5 sm:p-6`}><p className="fit-eyebrow">Your progress</p><div className="mt-2 flex items-end justify-between gap-4"><div><h2 className="text-xl font-black sm:text-2xl">Weight history</h2><p className="mt-1 text-xs text-gray-500">Your most recent weigh-ins</p></div><div className="text-right"><p className="text-2xl font-black text-green-300">{latest ? `${latest.weight_kg} kg` : "—"}</p>{change !== null && <p className="text-[10px] text-gray-500">{change > 0 ? "+" : ""}{change.toFixed(1)} kg since last entry</p>}</div></div>{weights.length ? <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{weights.slice(0, 4).map((entry, index) => <div key={entry.recorded_on} className={`rounded-xl p-3 ${index === 0 ? "bg-green-500/10" : "bg-black/15"}`}><p className="text-[10px] text-gray-500">{new Date(`${entry.recorded_on}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p><p className="mt-1 text-sm font-black text-gray-200">{entry.weight_kg} kg</p></div>)}</div> : <p className="mt-4 text-xs text-gray-500">Update your weight below to start tracking progress.</p>}</section>;
+}
+
+function OverviewStat({ label, value, suffix }: { label: string; value: string; suffix?: string }) { return <article className="fit-surface min-w-0 rounded-2xl p-4"><p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">{label}</p><p className="mt-2 truncate text-lg font-black capitalize text-white">{value}{suffix && value !== "—" ? <span className="ml-1 text-[10px] text-gray-500">{suffix}</span> : null}</p></article>; }
+
+function HelpfulLinks() {
+  const links = [
+    { title: "Calculator", text: "Update body details and calorie needs", href: "/calculator", eyebrow: "Your details", icon: <Calculator className="h-5 w-5" /> },
+    { title: "Full meal plan", text: "View portions, recipes, and shopping list", href: "/personal-plan#weekly-plan", eyebrow: "Nutrition", icon: <Salad className="h-5 w-5" /> },
+    { title: "Workout programs", text: "Find training matched to your preferences", href: "/workouts", eyebrow: "Training", icon: <Dumbbell className="h-5 w-5" /> },
+    { title: "Recipe library", text: "Browse all available meals", href: "/meals", eyebrow: "Recipes", icon: <BookOpen className="h-5 w-5" /> },
+    { title: "Nutrition guides", text: "Compare popular eating approaches", href: "/plans", eyebrow: "Guides", icon: <Sparkles className="h-5 w-5" /> },
+  ];
+  return <section className="mt-9"><p className="fit-eyebrow">Your FitTrack</p><h2 className="mt-1 text-2xl font-black">Tools and resources</h2><nav className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="FitTrack tools">{links.map((item) => <Link key={item.href} href={item.href} className="fit-surface fit-card-interactive group flex min-h-36 flex-col rounded-3xl p-5"><span className="flex items-start justify-between gap-4"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-500/10 text-green-300">{item.icon}</span><ArrowRight className="h-4 w-4 text-green-400 transition group-hover:translate-x-1" /></span><span className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-green-400">{item.eyebrow}</span><span className="mt-1 text-lg font-bold text-white">{item.title}</span><span className="mt-2 text-xs leading-relaxed text-gray-500">{item.text}</span></Link>)}</nav></section>;
+}
+
+function CompactPlanPreview({ plan }: { plan: StoredPlan }) {
+  return <Link href="/personal-plan#weekly-plan" className="fit-surface fit-card-interactive mt-5 block rounded-3xl p-5 sm:p-6">
+    <div className="flex items-end justify-between gap-3"><div className="min-w-0"><p className="fit-eyebrow">Current plan</p><h2 className="mt-1 text-xl font-black">Seven-day overview</h2></div><span className="shrink-0 text-xs font-bold text-green-300">Open →</span></div>
+    <div className="mt-3 flex overflow-x-auto rounded-xl border border-white/5 lg:grid lg:grid-cols-7">{plan.weeklyPlan.map((day, index) => {
+      const dayMeals = Object.values(day.meals).flat();
+      return <div key={index} className="w-[105px] shrink-0 border-r border-white/5 bg-gray-950/55 px-3 py-2.5 last:border-r-0 lg:w-auto"><p className="text-[9px] font-bold uppercase text-green-400">Day {index + 1}</p><p className="mt-1 text-[10px] font-black text-white">{day.total.kcal} <span className="font-medium text-gray-600">kcal</span></p><p className="text-[8px] text-gray-600">{dayMeals.length} meals</p></div>;
+    })}</div>
+  </Link>;
+}

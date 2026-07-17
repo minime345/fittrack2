@@ -23,7 +23,7 @@ export function PreferencesPanel({
   hasActivityProfile: boolean;
 }) {
   return (
-    <div className="fit-surface rounded-3xl border border-green-500/25 p-4 sm:p-6">
+    <div className="fit-surface min-w-0 rounded-3xl border border-green-500/25 p-4 sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-green-400">
@@ -33,11 +33,11 @@ export function PreferencesPanel({
             {lang === "bg" ? "Твоят график" : "Your schedule"}
           </h2>
         </div>
-        <div className="text-right">
+        <div className="min-w-0 text-right">
           <span className="block text-[9px] font-black uppercase tracking-wider text-green-400">
             {lang === "bg" ? "Най-добро съвпадение" : "Best Match"}
           </span>
-          <span className="mt-1 block rounded-xl bg-green-500/10 px-3 py-2 text-xs font-bold text-green-300">
+          <span className="mt-1 block break-words rounded-xl bg-green-500/10 px-3 py-2 text-xs font-bold text-green-300">
             {recommendedName} · {recommendedScore}%
           </span>
         </div>

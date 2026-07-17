@@ -299,3 +299,263 @@
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Home-page light theme demo. It follows the browser/device preference and is
+   intentionally scoped so the rest of the site stays unchanged for review. */
+@media (prefers-color-scheme: light) {
+  .fit-home-theme {
+    color: #17221b;
+    background:
+      radial-gradient(circle at 10% 6%, rgb(34 197 94 / 0.13), transparent 27rem),
+      radial-gradient(circle at 90% 24%, rgb(20 184 166 / 0.10), transparent 30rem),
+      linear-gradient(145deg, #f8fcf8 0%, #f2f8f4 48%, #eaf4ef 100%);
+  }
+  .fit-home-theme::before {
+    opacity: 0.5;
+    background-image: linear-gradient(rgb(22 101 52 / 0.045) 1px, transparent 1px), linear-gradient(90deg, rgb(22 101 52 / 0.045) 1px, transparent 1px);
+  }
+  .fit-home-theme .fit-header {
+    background: rgb(250 253 251 / 0.88);
+    border-color: rgb(22 101 52 / 0.12);
+    box-shadow: 0 10px 34px rgb(22 101 52 / 0.08);
+  }
+  .fit-home-theme .fit-surface {
+    border-color: rgb(22 101 52 / 0.12);
+    background: linear-gradient(145deg, rgb(255 255 255 / 0.94), rgb(244 250 246 / 0.90));
+    box-shadow: 0 18px 44px rgb(22 101 52 / 0.09), inset 0 1px white;
+  }
+  .fit-home-theme .fit-secondary-button {
+    color: #166534;
+    background: rgb(255 255 255 / 0.86);
+    box-shadow: inset 0 0 0 1px rgb(22 101 52 / 0.17), 0 8px 22px rgb(22 101 52 / 0.06);
+  }
+  .fit-home-theme .fit-secondary-button:hover { background: rgb(220 252 231 / 0.85); }
+  .fit-home-theme .fit-title-gradient {
+    background-image: linear-gradient(110deg, #166534 0%, #16a34a 48%, #0f766e 100%);
+  }
+  .fit-home-theme .fit-eyebrow,
+  .fit-home-theme .text-green-400 { color: #16803d; }
+  .fit-home-theme .text-green-300,
+  .fit-home-theme .text-green-200 { color: #166534; }
+  .fit-home-theme .text-white,
+  .fit-home-theme .text-gray-200 { color: #17221b; }
+  .fit-home-theme .text-gray-300 { color: #374b3d; }
+  .fit-home-theme .text-gray-400 { color: #52665a; }
+  .fit-home-theme .text-gray-500,
+  .fit-home-theme .text-gray-600 { color: #68796f; }
+  .fit-home-theme [class~="bg-gray-900/90"] { background: rgb(247 251 248 / 0.95); }
+  .fit-home-theme [class~="bg-green-500/10"] { background: rgb(34 197 94 / 0.12); }
+  .fit-home-theme footer {
+    color: #435449;
+    background: rgb(239 247 242 / 0.92);
+    border-color: rgb(22 101 52 / 0.12);
+  }
+  .fit-home-theme footer [class~="border-white/5"],
+  .fit-home-theme [class~="border-white/10"] { border-color: rgb(22 101 52 / 0.12); }
+  .fit-home-theme #mobile-navigation { background: rgb(244 250 246 / 0.97); }
+  .fit-home-theme #mobile-navigation > div {
+    border-color: rgb(22 101 52 / 0.13);
+    background: linear-gradient(to bottom, #ffffff, #f1f8f3);
+    box-shadow: 0 24px 70px rgb(22 101 52 / 0.16);
+  }
+  .fit-home-theme #mobile-navigation nav a {
+    border-color: rgb(22 101 52 / 0.10);
+    background: rgb(255 255 255 / 0.7);
+  }
+  .fit-home-theme #mobile-navigation nav a[aria-current="page"] {
+    border-color: rgb(22 163 74 / 0.32);
+    background: rgb(34 197 94 / 0.11);
+  }
+}
+
+/* Default modern light system shared by every FitTrack page. */
+body {
+  color-scheme: light;
+  background: #cbcfc5;
+}
+.fit-shell {
+  color: #26312a;
+  background:
+    radial-gradient(circle at 8% 4%, rgb(112 139 104 / 0.20), transparent 28rem),
+    radial-gradient(circle at 92% 22%, rgb(166 126 91 / 0.12), transparent 32rem),
+    linear-gradient(145deg, #ddd8cc 0%, #d1d7cc 48%, #c8d2ca 100%);
+}
+.fit-shell::before {
+  opacity: 0.34;
+  background-image: linear-gradient(rgb(54 75 61 / 0.055) 1px, transparent 1px), linear-gradient(90deg, rgb(54 75 61 / 0.055) 1px, transparent 1px);
+}
+.fit-shell .fit-header {
+  background: rgb(218 220 209 / 0.94);
+  border-color: rgb(63 83 68 / 0.15);
+  box-shadow: 0 10px 34px rgb(52 67 57 / 0.10);
+}
+.fit-shell .fit-surface {
+  border-color: rgb(63 83 68 / 0.14);
+  background: linear-gradient(145deg, rgb(230 227 216 / 0.97), rgb(210 219 208 / 0.96));
+  box-shadow: 0 18px 46px rgb(52 67 57 / 0.10), inset 0 1px rgb(255 255 255 / 0.48);
+}
+.fit-shell .fit-card-interactive:hover {
+  border-color: rgb(22 163 74 / 0.30);
+  box-shadow: 0 24px 54px rgb(22 101 52 / 0.14), 0 0 0 1px rgb(34 197 94 / 0.05);
+}
+.fit-shell .fit-secondary-button {
+  color: #405c47;
+  background: rgb(226 231 222 / 0.92);
+  box-shadow: inset 0 0 0 1px rgb(63 83 68 / 0.18), 0 8px 22px rgb(52 67 57 / 0.07);
+}
+.fit-shell .fit-secondary-button:hover { background: rgb(211 222 208 / 0.95); }
+.fit-shell .fit-primary-button {
+  color: #18241b;
+  background: linear-gradient(135deg, #91a886, #b1a17f);
+  box-shadow: 0 12px 28px rgb(76 94 76 / 0.20);
+}
+.fit-shell .fit-primary-button:hover { box-shadow: 0 16px 34px rgb(76 94 76 / 0.28); }
+.fit-shell .fit-logo-mark {
+  background: linear-gradient(135deg, #829d79, #b0a078);
+  box-shadow: 0 0 0 1px rgb(66 86 69 / 0.18), 0 10px 26px rgb(70 89 72 / 0.18);
+}
+.fit-shell .fit-title-gradient {
+  background-image: linear-gradient(110deg, #344c3a 0%, #5e7b60 50%, #8a664e 100%);
+}
+.fit-shell .fit-section-title { color: #26312a; }
+.fit-shell .fit-eyebrow,
+.fit-shell .text-green-400 { color: #58765d; }
+.fit-shell .text-green-300,
+.fit-shell .text-green-200 { color: #49664f; }
+.fit-shell.text-white,
+.fit-shell .text-white,
+.fit-shell .text-gray-100,
+.fit-shell .text-gray-200 { color: #26312a; }
+.fit-shell .text-gray-300 { color: #3e4d43; }
+.fit-shell .text-gray-400 { color: #58665d; }
+.fit-shell .text-gray-500,
+.fit-shell .text-gray-600 { color: #6b766e; }
+.fit-shell [class*="text-blue-"],
+.fit-shell [class*="text-sky-"] { color: #455f70; }
+.fit-shell .fit-chip {
+  border-color: rgb(22 101 52 / 0.12);
+  background: rgb(255 255 255 / 0.72);
+  color: #385244;
+}
+.fit-shell input,
+.fit-shell select,
+.fit-shell textarea {
+  color: #26312a;
+  background-color: rgb(224 230 221 / 0.88);
+}
+.fit-shell input::placeholder,
+.fit-shell textarea::placeholder { color: #7a8b80; }
+.fit-shell [class~="bg-gray-950"],
+.fit-shell [class~="bg-gray-950/55"],
+.fit-shell [class~="bg-gray-950/60"],
+.fit-shell [class~="bg-gray-900/90"],
+.fit-shell [class~="bg-gray-900/95"],
+.fit-shell [class~="bg-gray-900/70"],
+.fit-shell [class~="bg-black/20"],
+.fit-shell [class~="bg-black/15"],
+.fit-shell [class~="bg-black/10"] { background: rgb(222 228 219 / 0.92); }
+.fit-shell [class*="bg-gray-8"],
+.fit-shell [class*="bg-gray-9"] { background-color: rgb(222 228 219 / 0.94); }
+.fit-shell [class~="bg-white/5"] { background: rgb(213 222 213 / 0.72); }
+.fit-shell [class~="bg-green-500/10"],
+.fit-shell [class~="bg-green-500/15"] { background: rgb(34 197 94 / 0.12); }
+.fit-shell [class~="border-white/5"],
+.fit-shell [class~="border-white/10"] { border-color: rgb(22 101 52 / 0.12); }
+.fit-shell footer {
+  color: #435449;
+  background: rgb(208 218 209 / 0.95);
+  border-color: rgb(63 83 68 / 0.14);
+}
+.fit-shell #mobile-navigation { background: rgb(198 207 198 / 0.98); }
+.fit-shell #mobile-navigation > div {
+  border-color: rgb(63 83 68 / 0.14);
+  background: linear-gradient(to bottom, #dcded4, #ccd5cc);
+  box-shadow: 0 24px 70px rgb(52 67 57 / 0.17);
+}
+.fit-shell #mobile-navigation nav a {
+  border-color: rgb(63 83 68 / 0.11);
+  background: rgb(224 223 213 / 0.88);
+}
+.fit-shell #mobile-navigation nav a[aria-current="page"] {
+  border-color: rgb(22 163 74 / 0.32);
+  background: rgb(34 197 94 / 0.11);
+}
+
+/* Legacy pages use several white-text variants. In the light system they all
+   need an explicit ink color, including hover-only utility names. */
+.fit-shell[class*="text-white"],
+.fit-shell [class*="text-white"],
+.fit-shell[class*="text-gray-100"],
+.fit-shell [class*="text-gray-100"] {
+  color: #26312a;
+}
+.fit-shell .fit-primary-button[class*="text-white"] { color: #18241b; }
+
+.fit-shell .fit-theme-toggle {
+  color: #405c47;
+  background: rgb(216 224 214 / 0.92);
+  border-color: rgb(63 83 68 / 0.22);
+}
+.fit-shell .fit-nav-link[aria-current="page"] { color: #405f47; }
+.fit-shell .fit-callout,
+.fit-shell [class*="from-green-500/10"][class*="to-teal-500/5"] {
+  border-color: rgb(77 101 80 / 0.32);
+  background: linear-gradient(135deg, rgb(186 203 184 / 0.94), rgb(211 195 173 / 0.88));
+  box-shadow: 0 18px 42px rgb(52 67 57 / 0.10);
+}
+
+/* User-selected dark theme. */
+html.theme-dark body { color-scheme: dark; background: #030712; }
+html.theme-dark .fit-shell {
+  color: #f3f4f6;
+  background:
+    radial-gradient(circle at 12% 8%, rgb(34 197 94 / 0.10), transparent 28rem),
+    radial-gradient(circle at 88% 26%, rgb(20 184 166 / 0.07), transparent 30rem),
+    linear-gradient(135deg, #030712 0%, #111827 52%, #1f2937 100%);
+}
+html.theme-dark .fit-shell::before {
+  opacity: 0.22;
+  background-image: linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
+}
+html.theme-dark .fit-shell .fit-header { background: rgb(3 7 18 / 0.82); border-color: rgb(255 255 255 / 0.09); }
+html.theme-dark .fit-shell .fit-surface {
+  border-color: rgb(255 255 255 / 0.09);
+  background: linear-gradient(145deg, rgb(31 41 55 / 0.88), rgb(17 24 39 / 0.82));
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.24), inset 0 1px rgb(255 255 255 / 0.04);
+}
+html.theme-dark .fit-shell .fit-secondary-button,
+html.theme-dark .fit-shell .fit-theme-toggle { color: #bbf7d0; background: rgb(17 24 39 / 0.82); border-color: rgb(74 222 128 / 0.22); }
+html.theme-dark .fit-shell .fit-primary-button { color: #020617; background: linear-gradient(135deg, #4ade80, #2dd4bf); }
+html.theme-dark .fit-shell .fit-logo-mark { background: linear-gradient(135deg, #4ade80, #84cc16); }
+html.theme-dark .fit-shell .fit-title-gradient { background-image: linear-gradient(110deg, #86efac, #4ade80 48%, #2dd4bf); }
+html.theme-dark .fit-shell .fit-section-title { color: #f9fafb; }
+html.theme-dark .fit-shell .fit-eyebrow,
+html.theme-dark .fit-shell .text-green-400 { color: #4ade80; }
+html.theme-dark .fit-shell .text-green-300,
+html.theme-dark .fit-shell .text-green-200 { color: #86efac; }
+html.theme-dark .fit-shell[class*="text-white"],
+html.theme-dark .fit-shell [class*="text-white"],
+html.theme-dark .fit-shell[class*="text-gray-100"],
+html.theme-dark .fit-shell [class*="text-gray-100"],
+html.theme-dark .fit-shell .text-gray-200 { color: #f3f4f6; }
+html.theme-dark .fit-shell .text-gray-300 { color: #d1d5db; }
+html.theme-dark .fit-shell .text-gray-400 { color: #9ca3af; }
+html.theme-dark .fit-shell .text-gray-500,
+html.theme-dark .fit-shell .text-gray-600 { color: #6b7280; }
+html.theme-dark .fit-shell [class*="text-blue-"],
+html.theme-dark .fit-shell [class*="text-sky-"] { color: #bfdbfe; }
+html.theme-dark .fit-shell input,
+html.theme-dark .fit-shell select,
+html.theme-dark .fit-shell textarea { color: #f3f4f6; background-color: rgb(3 7 18 / 0.82); }
+html.theme-dark .fit-shell [class*="bg-gray-8"],
+html.theme-dark .fit-shell [class*="bg-gray-9"] { background-color: rgb(17 24 39 / 0.92); }
+html.theme-dark .fit-shell [class~="bg-black/10"],
+html.theme-dark .fit-shell [class~="bg-black/15"],
+html.theme-dark .fit-shell [class~="bg-black/20"] { background: rgb(0 0 0 / 0.18); }
+html.theme-dark .fit-shell [class~="bg-white/5"] { background: rgb(255 255 255 / 0.05); }
+html.theme-dark .fit-shell footer { color: #d1d5db; background: rgb(3 7 18 / 0.78); border-color: rgb(255 255 255 / 0.09); }
+html.theme-dark .fit-shell #mobile-navigation { background: rgb(3 7 18 / 0.97); }
+html.theme-dark .fit-shell #mobile-navigation > div { border-color: rgb(255 255 255 / 0.10); background: linear-gradient(to bottom, #111827, #030712); }
+html.theme-dark .fit-shell #mobile-navigation nav a { border-color: rgb(255 255 255 / 0.06); background: rgb(255 255 255 / 0.025); }
+html.theme-dark .fit-shell .fit-callout,
+html.theme-dark .fit-shell [class*="from-green-500/10"][class*="to-teal-500/5"] { border-color: rgb(74 222 128 / 0.25); background: linear-gradient(135deg, rgb(34 197 94 / 0.11), rgb(20 184 166 / 0.06)); }

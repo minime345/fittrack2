@@ -34,6 +34,7 @@ export function SiteFooter({ t, currentYear }: SiteFooterProps) {
             <li><Link href="/plans" className="hover:text-green-400">{t.nav.plans}</Link></li>
             <li><Link href="/workouts" className="hover:text-green-400">{t.nav.workouts}</Link></li>
             <li><Link href="/meals" className="hover:text-green-400">{t.nav.meals}</Link></li>
+            <li><Link href="/dashboard" className="hover:text-green-400">{t.nav.account || "Account"}</Link></li>
           </ul>
         </div>
 

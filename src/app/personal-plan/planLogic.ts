@@ -343,8 +343,19 @@ export function generateShoppingList(weeklyPlan: DayPlan[], lang: "bg" | "en"): 
     // Обхождаме всяко ястие и неговите съставки
     allMeals.forEach((meal) => {
       meal.ingredients?.forEach(({ name, amount, unit }) => {
-        const ingredientName = typeof name === "string" ? name : name[lang];
-        const key = `${ingredientName}_${unit}`;
+        const rawName: unknown = name;
+        const bilingualName = rawName as { bg: string; en: string };
+        const ingredientName = typeof rawName === "string" ? rawName : bilingualName[lang];
+        const ingredientIdentity = typeof rawName === "string" ? rawName : `${bilingualName.bg}_${bilingualName.en}`;
+        const normalizedNames = typeof rawName === "string"
+          ? [rawName.trim().toLocaleLowerCase()]
+          : [bilingualName.bg.trim().toLocaleLowerCase(), bilingualName.en.trim().toLocaleLowerCase()];
+
+        // Ice is a preparation extra, not something the user needs to buy.
+        if (normalizedNames.includes("ice") || normalizedNames.includes("лед")) return;
+
+        // A bilingual identity keeps grouping and ordering stable across languages.
+        const key = `${ingredientIdentity}_${unit}`;
         if (ingredientMap.has(key)) {
           ingredientMap.get(key)!.amount += amount;
         } else {
@@ -365,6 +376,5 @@ export function generateShoppingList(weeklyPlan: DayPlan[], lang: "bg" | "en"): 
           ? Math.round(ingredient.amount / 50) * 50
           : Math.round(ingredient.amount / 5) * 5
         : Math.round(ingredient.amount),
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    }));
 }
