@@ -8,6 +8,8 @@ import type {
   Goal,
   TrainingPreferences,
 } from "./types";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export function useTrainingPreferences() {
   const { lang, setLang } = useLang();
@@ -16,6 +18,7 @@ export function useTrainingPreferences() {
   const [prefs, setPrefs] = useState<TrainingPreferences>(defaults);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [storageReady, setStorageReady] = useState(false);
+  const [cloudReady, setCloudReady] = useState(false);
   const t = translations[lang] || translations.bg;
 
   useEffect(() => {
@@ -67,12 +70,48 @@ export function useTrainingPreferences() {
   }, [setLang]);
 
   useEffect(() => {
+    const loadCloud = async () => {
+      if (!isSupabaseConfigured) return setCloudReady(true);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase.from("profiles").select("calculator_profile, training_preferences").eq("id", user.id).maybeSingle();
+        const cloudProfile = data?.calculator_profile as CalculatorProfile | undefined;
+        if (cloudProfile && Object.keys(cloudProfile).length) {
+          setProfile(cloudProfile);
+          localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify(cloudProfile));
+        }
+        const cloudTraining = data?.training_preferences as (Partial<TrainingPreferences> & { selectedPlanId?: string | null }) | undefined;
+        if (cloudTraining && Object.keys(cloudTraining).length) {
+          setPrefs((current) => ({ ...current, ...cloudTraining }));
+          setSelectedPlanId(cloudTraining.selectedPlanId || null);
+          localStorage.setItem("fittrack-training-preferences-v1", JSON.stringify(cloudTraining));
+        }
+      } finally {
+        setCloudReady(true);
+      }
+    };
+    void loadCloud();
+  }, []);
+
+  useEffect(() => {
     if (!storageReady) return;
     localStorage.setItem(
       "fittrack-training-preferences-v1",
       JSON.stringify({ ...prefs, selectedPlanId }),
     );
   }, [prefs, selectedPlanId, storageReady]);
+
+  useEffect(() => {
+    if (!storageReady || !cloudReady || !isSupabaseConfigured) return;
+    const timeout = window.setTimeout(async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await supabase.from("profiles").update({ training_preferences: { ...prefs, selectedPlanId }, updated_at: new Date().toISOString() }).eq("id", user.id);
+    }, 600);
+    return () => window.clearTimeout(timeout);
+  }, [prefs, selectedPlanId, storageReady, cloudReady]);
 
   const updatePrefs = <K extends keyof TrainingPreferences>(
     key: K,

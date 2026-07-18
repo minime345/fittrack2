@@ -39,6 +39,8 @@ type Props = {
   firstName: string;
   profileGoal: Goal | null;
   weights: { weight_kg: number | string; recorded_on: string }[];
+  initialCalculator: CalculatorProfile | null;
+  initialPlan: StoredPlan | null;
 };
 
 const calculateProfile = (profile: CalculatorProfile, weight: number) => {
@@ -72,7 +74,7 @@ const rescalePlan = (plan: DayPlan[], ratio: number): DayPlan[] => plan.map((day
   return { meals: adjustedMeals, total: calculateTotal(adjustedMeals) };
 });
 
-export function AccountDashboardClient({ userId, firstName, profileGoal, weights }: Props) {
+export function AccountDashboardClient({ userId, firstName, profileGoal, weights, initialCalculator, initialPlan }: Props) {
   const [lang, setLang] = useState<Lang>("en");
   const [isOpen, setIsOpen] = useState(false);
   const [calculator, setCalculator] = useState<CalculatorProfile | null>(null);
@@ -89,23 +91,25 @@ export function AccountDashboardClient({ userId, firstName, profileGoal, weights
     if (savedLang === "bg" || savedLang === "en") setLang(savedLang);
     try {
       const calculatorRaw = localStorage.getItem("fittrack-calculator-profile-v1");
-      if (calculatorRaw) {
-        const parsed = JSON.parse(calculatorRaw) as CalculatorProfile;
+      if (initialCalculator || calculatorRaw) {
+        const parsed = initialCalculator || JSON.parse(calculatorRaw!) as CalculatorProfile;
         setCalculator(parsed);
+        localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify(parsed));
         if (Number.isFinite(parsed.weight)) setWeight(String(parsed.weight));
       } else if (latestWeight) setWeight(String(latestWeight.weight_kg));
       const planRaw = localStorage.getItem("fittrack-active-plan-v2");
-      if (planRaw) {
-        const parsed = JSON.parse(planRaw) as StoredPlan;
+      if (initialPlan || planRaw) {
+        const parsed = initialPlan || JSON.parse(planRaw!) as StoredPlan;
         if (Array.isArray(parsed.weeklyPlan) && parsed.weeklyPlan.length === 7) {
           setActivePlan(parsed);
           setGoal(parsed.goal);
+          localStorage.setItem("fittrack-active-plan-v2", JSON.stringify(parsed));
         }
       }
     } catch {
       setMessage("Some saved browser data could not be read. Open the calculator or meal plan to refresh it.");
     }
-  }, [latestWeight]);
+  }, [initialCalculator, initialPlan, latestWeight]);
 
   const planCalories = useMemo(() => {
     if (!activePlan?.weeklyPlan.length) return null;

@@ -28,9 +28,8 @@ export function MealPreferencePicker({ userId, compact = false }: { userId: stri
       const { data } = await createClient().from("recipe_preferences").select("recipe_slug").eq("user_id", userId).eq("preference", "favorite");
       if (!data) return;
       const account = data.map((item) => item.recipe_slug).filter((slug) => meals.some((meal) => meal.slug === slug));
-      const merged = Array.from(new Set([...local, ...account]));
-      setSelected(merged);
-      localStorage.setItem(storageKey, JSON.stringify(merged));
+      setSelected(account);
+      localStorage.setItem(storageKey, JSON.stringify(account));
     };
     void load();
   }, [userId]);

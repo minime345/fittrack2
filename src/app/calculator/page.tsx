@@ -7,6 +7,8 @@ import { translations, type Lang } from "@/lib/translations";
 import { Analytics } from "@vercel/analytics/react";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
 import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const proteinFactorsByActivity: Record<number, [number, number]> = {
   1.2: [1.2, 1.6],
@@ -82,10 +84,7 @@ export default function Calculator() {
   const t = translations[lang] || translations.bg;
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("fittrack-calculator-profile-v1");
-      if (!raw) return;
-      const saved = JSON.parse(raw) as {
+    const applySavedProfile = (saved: {
         age?: number;
         weight?: number;
         height?: number;
@@ -93,7 +92,7 @@ export default function Calculator() {
         activity?: number;
         bodyFat?: number | null;
         calories?: number | null;
-      };
+      }) => {
       if (Number.isFinite(saved.age)) setAge(saved.age!);
       if (Number.isFinite(saved.weight)) setWeight(saved.weight!);
       if (Number.isFinite(saved.height)) setHeight(saved.height!);
@@ -107,17 +106,34 @@ export default function Calculator() {
       if (Number.isFinite(saved.weight) && Number.isFinite(saved.activity)) {
         setProteinRange(getProteinRange(saved.weight!, saved.activity!));
       }
-    } catch {
-      localStorage.removeItem("fittrack-calculator-profile-v1");
-    } finally {
-      setProfileReady(true);
-    }
+    };
+    const loadProfile = async () => {
+      try {
+        const raw = localStorage.getItem("fittrack-calculator-profile-v1");
+        if (raw) applySavedProfile(JSON.parse(raw));
+        if (!isSupabaseConfigured) return;
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase.from("profiles").select("calculator_profile").eq("id", user.id).maybeSingle();
+        const cloudProfile = data?.calculator_profile as Parameters<typeof applySavedProfile>[0] | undefined;
+        if (cloudProfile && Object.keys(cloudProfile).length) {
+          applySavedProfile(cloudProfile);
+          localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify(cloudProfile));
+        }
+      } catch {
+        // Keep the last browser copy available if cloud sync is temporarily unavailable.
+      } finally {
+        setProfileReady(true);
+      }
+    };
+    void loadProfile();
   }, []);
 
   useEffect(() => {
     if (!profileReady) return;
     const currentProfile = calculateProfile(age, weight, height, gender, activity, bodyFat);
-    localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify({
+    const savedProfile = {
       age: age === "" ? null : Number(age),
       weight: weight === "" ? null : Number(weight),
       height: height === "" ? null : Number(height),
@@ -128,7 +144,15 @@ export default function Calculator() {
       proteinMin: currentProfile?.proteinRange[0] ?? null,
       proteinMax: currentProfile?.proteinRange[1] ?? null,
       updatedAt: Date.now(),
-    }));
+    };
+    localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify(savedProfile));
+    if (!isSupabaseConfigured) return;
+    const timeout = window.setTimeout(async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await supabase.from("profiles").update({ calculator_profile: savedProfile, updated_at: new Date().toISOString() }).eq("id", user.id);
+    }, 600);
+    return () => window.clearTimeout(timeout);
   }, [profileReady, age, weight, height, gender, activity, bodyFat, result]);
 
   useEffect(() => {

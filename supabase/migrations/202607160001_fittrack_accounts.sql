@@ -1,1 +1,3 @@
-i
+-- The initial account schema was applied directly in the hosted Supabase
+-- project. This marker migration is intentionally a no-op; subsequent schema
+-- changes are kept in versioned migrations in this directory.

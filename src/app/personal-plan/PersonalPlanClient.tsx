@@ -31,6 +31,8 @@ import { PlanOverview } from "./components/PlanOverview";
 import { PlanGuide } from "./components/PlanGuide";
 import { AccountPlanPrompt } from "./components/AccountPlanPrompt";
 import { WorkoutPlanPrompt } from "./components/WorkoutPlanPrompt";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const refreshSavedRecipeData = (savedPlan: DayPlan[]): DayPlan[] => savedPlan.map((day) => {
   const refreshedMeals = Object.fromEntries(
@@ -93,6 +95,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
   const [weeklyPlan, setWeeklyPlan] = useState<DayPlan[]>([]);
   const [likedMealSlugs, setLikedMealSlugs] = useState<string[]>([]);
   const [planStorageReady, setPlanStorageReady] = useState(false);
+  const [cloudStorageReady, setCloudStorageReady] = useState(false);
   const [generatedSettings, setGeneratedSettings] = useState<{
     baseCalories: number;
     goal: Goal;
@@ -160,6 +163,50 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
       setPlanStorageReady(true);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!planStorageReady) return;
+    const loadCloudAccount = async () => {
+      if (!isSupabaseConfigured) return setCloudStorageReady(true);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const [profileResult, planResult, preferencesResult] = await Promise.all([
+          supabase.from("profiles").select("calculator_profile").eq("id", user.id).maybeSingle(),
+          supabase.from("saved_meal_plans").select("settings, plan_data").eq("user_id", user.id).eq("is_active", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+          supabase.from("recipe_preferences").select("recipe_slug").eq("user_id", user.id).eq("preference", "favorite"),
+        ]);
+        const calculator = profileResult.data?.calculator_profile as { calories?: number; proteinMin?: number; proteinMax?: number } | undefined;
+        if (calculator && Object.keys(calculator).length) {
+          localStorage.setItem("fittrack-calculator-profile-v1", JSON.stringify(calculator));
+          if (!searchParams.has("calories") && Number.isFinite(calculator.calories)) setBaseCalories(calculator.calories!);
+          if (Number.isFinite(calculator.proteinMin) && Number.isFinite(calculator.proteinMax)) setSavedProteinRange([calculator.proteinMin!, calculator.proteinMax!]);
+          setHasCalculatorProfile(Number.isFinite(calculator.calories));
+        }
+        const favoriteSlugs = (preferencesResult.data || []).map((item) => item.recipe_slug);
+        if (favoriteSlugs.length) {
+          setLikedMealSlugs(favoriteSlugs);
+          localStorage.setItem("fittrack-liked-meals-v1", JSON.stringify(favoriteSlugs));
+        }
+        const settings = planResult.data?.settings as { baseCalories?: number; goal?: Goal; diet?: Diet; excludedSources?: ExcludedSource[]; planStyle?: PlanStyle; swapHistory?: Record<string, string[]> } | undefined;
+        const plan = planResult.data?.plan_data as DayPlan[] | undefined;
+        if (settings?.baseCalories && settings.goal && settings.diet && Array.isArray(plan) && plan.length === 7) {
+          setBaseCalories(settings.baseCalories);
+          setGoal(settings.goal);
+          setDiet(settings.diet);
+          setExcludedSources(settings.excludedSources || []);
+          setPlanStyle(settings.planStyle || "diverse");
+          setWeeklyPlan(refreshSavedRecipeData(plan));
+          setSwapHistory(settings.swapHistory || {});
+          setGeneratedSettings({ baseCalories: settings.baseCalories, goal: settings.goal, diet: settings.diet, excludedSources: settings.excludedSources || [], planStyle: settings.planStyle || "diverse" });
+        }
+      } finally {
+        setCloudStorageReady(true);
+      }
+    };
+    void loadCloudAccount();
+  }, [planStorageReady, searchParams]);
 
   const goalLabels: Record<Goal, string> = {
     maintain: t.Main.maintain,
@@ -246,7 +293,7 @@ const regeneratePlan = () => {
 };
 
 useEffect(() => {
-  if (!planStorageReady) return;
+  if (!planStorageReady || !cloudStorageReady) return;
   const settingsChanged = !generatedSettings ||
     generatedSettings.baseCalories !== baseCalories ||
     generatedSettings.goal !== goal ||
@@ -257,16 +304,31 @@ useEffect(() => {
   if (weeklyPlan.length !== 7 || settingsChanged) regeneratePlan();
   // Regenerate only when inputs change; the saved plan is reused after navigation.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [planStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings, likedMealSlugs]);
+}, [planStorageReady, cloudStorageReady, baseCalories, goal, diet, planStyle, excludedSources, generatedSettings, likedMealSlugs]);
 
 useEffect(() => {
-  if (!planStorageReady || weeklyPlan.length !== 7 || !generatedSettings) return;
-  localStorage.setItem("fittrack-active-plan-v2", JSON.stringify({
+  if (!planStorageReady || !cloudStorageReady || weeklyPlan.length !== 7 || !generatedSettings) return;
+  const storedPlan = {
     ...generatedSettings,
     weeklyPlan,
     swapHistory,
-  }));
-}, [weeklyPlan, swapHistory, generatedSettings, planStorageReady]);
+  };
+  localStorage.setItem("fittrack-active-plan-v2", JSON.stringify(storedPlan));
+  if (!isSupabaseConfigured) return;
+  const timeout = window.setTimeout(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const settings = { ...generatedSettings, swapHistory };
+    const { data: active } = await supabase.from("saved_meal_plans").select("id").eq("user_id", user.id).eq("is_active", true).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (active?.id) {
+      await supabase.from("saved_meal_plans").update({ settings, plan_data: weeklyPlan, updated_at: new Date().toISOString() }).eq("id", active.id);
+    } else {
+      await supabase.from("saved_meal_plans").insert({ user_id: user.id, name: "Personal meal plan", settings, plan_data: weeklyPlan, is_active: true });
+    }
+  }, 700);
+  return () => window.clearTimeout(timeout);
+}, [weeklyPlan, swapHistory, generatedSettings, planStorageReady, cloudStorageReady]);
 
 useEffect(() => {
   if (!planStorageReady || weeklyPlan.length !== 7 || window.location.hash !== "#weekly-plan") return;
