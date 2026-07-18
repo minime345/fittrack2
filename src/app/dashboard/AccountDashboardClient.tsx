@@ -187,7 +187,7 @@ export function AccountDashboardClient({ userId, firstName, profileGoal, weights
       <div className="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 sm:py-11">
         <section className="grid items-end gap-5 sm:grid-cols-[1fr_auto]">
           <div className="min-w-0"><p className="fit-eyebrow">Your FitTrack account</p><h1 className="fit-title-gradient mt-2 text-3xl font-black sm:text-5xl">Welcome, {firstName}</h1><p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-400">See how you are progressing, update your goal, and keep your nutrition plan aligned with your current needs.</p></div>
-          <Link href="/auth/reset-password" className="fit-secondary-button flex min-h-11 w-fit items-center gap-2 px-4 py-3 text-xs font-bold text-green-300"><KeyRound className="h-4 w-4" /> Account security</Link>
+          <Link href="/auth/update-password" className="fit-secondary-button flex min-h-11 w-fit items-center gap-2 px-4 py-3 text-xs font-bold text-green-300"><KeyRound className="h-4 w-4" /> Change password</Link>
         </section>
 
         <section className="mt-7 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">

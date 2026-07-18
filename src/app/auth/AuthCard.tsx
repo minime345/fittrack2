@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, ReactNode, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -16,6 +16,13 @@ export function AuthCard({ mode }: { mode: Mode }) {
   const [loading, setLoading] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState<RecoveryStep>("email");
   const [recoveryCode, setRecoveryCode] = useState("");
+  const recoveryCodeInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (mode !== "reset") return;
+    const savedEmail = new URLSearchParams(window.location.search).get("email");
+    if (savedEmail) setEmail(savedEmail);
+  }, [mode]);
 
   const copy: Record<Mode, { title: string; text: string; button: string }> = {
     login: { title: "Welcome back", text: "Sign in to sync your plans and progress.", button: "Sign in" },
@@ -114,17 +121,25 @@ export function AuthCard({ mode }: { mode: Mode }) {
             </label>
           )}
           {mode === "reset" && recoveryStep === "code" && (
-            <label className="block text-sm font-semibold text-gray-300">
-              Recovery code
-              <input type="text" required inputMode="numeric" autoComplete="one-time-code" value={recoveryCode} onChange={(event) => setRecoveryCode(event.target.value.replace(/\s/g, ""))} placeholder="Enter the code from your email" className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-gray-950 px-3 text-center text-lg font-black tracking-[0.3em] text-white outline-none focus:border-green-400" />
-            </label>
+            <div className="block text-sm font-semibold text-gray-300">
+              <label htmlFor="recovery-code">Recovery code</label>
+              <div role="presentation" onClick={() => recoveryCodeInput.current?.focus()} className="relative mt-3 grid grid-cols-6 gap-2">
+                <input id="recovery-code" ref={recoveryCodeInput} type="text" required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" value={recoveryCode} onChange={(event) => setRecoveryCode(event.target.value.replace(/\D/g, "").slice(0, 6))} aria-label="Six-digit recovery code" className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0" />
+                {Array.from({ length: 6 }, (_, index) => (
+                  <span key={index} aria-hidden="true" className={`flex aspect-square min-w-0 items-center justify-center rounded-xl border text-xl font-black shadow-sm transition sm:text-2xl ${recoveryCode[index] ? "border-green-500/45 bg-green-500/10" : index === recoveryCode.length ? "border-green-500/55 bg-white/5 ring-2 ring-green-500/10" : "border-white/10 bg-black/10"}`}>
+                    {recoveryCode[index] || ""}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-2 text-xs font-normal text-gray-500">Paste the code or enter all six digits.</p>
+            </div>
           )}
           {message && <p role="status" className="rounded-xl border border-green-500/15 bg-green-500/5 p-3 text-xs text-green-200">{message}</p>}
           <button disabled={loading} className="fit-primary-button min-h-12 w-full px-5 py-3 font-black disabled:opacity-60">{loading ? "Please wait…" : mode === "reset" ? recoveryStep === "email" ? "Send recovery code" : recoveryStep === "code" ? "Verify code" : "Save new password" : copy[mode].button}</button>
         </form>
         {mode === "reset" && recoveryStep !== "email" && recoveryStep !== "password" && <button type="button" onClick={() => { setRecoveryStep("email"); setRecoveryCode(""); setMessage(""); }} className="mt-4 text-xs font-bold text-green-300">Use a different email or resend code</button>}
         <div className="mt-5 flex flex-wrap justify-between gap-3 text-xs text-gray-400">
-          {mode === "login" && <><Link href="/auth/signup" className="text-green-300">Create account</Link><Link href="/auth/reset-password">Forgot password?</Link></>}
+          {mode === "login" && <><Link href="/auth/signup" className="text-green-300">Create account</Link><Link href={email ? `/auth/reset-password?email=${encodeURIComponent(email)}` : "/auth/reset-password"}>Forgot password?</Link></>}
           {mode === "signup" && <Link href="/auth/login" className="text-green-300">Already have an account?</Link>}
           {(mode === "reset" || mode === "update") && <Link href="/auth/login" className="text-green-300">Return to sign in</Link>}
         </div>
