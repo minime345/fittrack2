@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Diet, ExcludedSource, Goal, PlanStyle } from "../types";
 import { getTargetCalories } from "../planLogic";
@@ -34,14 +35,20 @@ export function PlanOverview(props: Props) {
 
   return (
     <div className="mb-6">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5 text-center sm:text-left">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-green-400/80">
-          {lang === "bg" ? "Твоят седмичен режим" : "Your weekly nutrition plan"}
-        </p>
-        <h1 className="fit-title-gradient text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">{t.Main.heading}</h1>
-        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0 sm:text-base">
-          {lang === "bg" ? "Настрой целта и предпочитанията си. Планът се обновява само при промяна и остава запазен при навигация." : "Adjust your goal and preferences. The plan updates only when they change and stays saved during navigation."}
-        </p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="fit-surface mb-5 grid overflow-hidden rounded-3xl border border-white/10 md:grid-cols-[1.08fr_0.92fr]">
+        <div className="flex flex-col justify-center p-5 text-center sm:p-7 sm:text-left">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-green-400/80">
+            {lang === "bg" ? "Твоят седмичен режим" : "Your weekly nutrition plan"}
+          </p>
+          <h1 className="fit-title-gradient text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">{t.Main.heading}</h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0 sm:text-base">
+            {lang === "bg" ? "Настрой целта и предпочитанията си. Планът се обновява само при промяна и остава запазен при навигация." : "Adjust your goal and preferences. The plan updates only when they change and stays saved during navigation."}
+          </p>
+        </div>
+        <div className="relative min-h-40 overflow-hidden border-t border-white/10 md:min-h-52 md:border-l md:border-t-0">
+          <Image src="/brand/personal-plan-meal-prep.webp" alt={lang === "bg" ? "Подготвени балансирани ястия и седмичен планер" : "Prepared balanced meals beside a weekly planner"} fill priority sizes="(max-width: 768px) 100vw, 44vw" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent md:bg-gradient-to-r" aria-hidden="true" />
+        </div>
       </motion.div>
 
       <div className="grid items-start gap-4 lg:grid-cols-[0.72fr_1.6fr]">

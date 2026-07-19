@@ -13,6 +13,7 @@ type DownloadWorkoutPdfParams = {
   equipment: Equipment;
   minutes: number;
   exerciseLimit: number;
+  theme?: "light" | "dark";
 };
 
 type ExerciseRow = {
@@ -37,16 +38,30 @@ type Layout = {
   totalHeight: number;
 };
 
-const COLORS = {
-  background: [7, 17, 31] as const,
-  surface: [17, 29, 45] as const,
-  surfaceAlt: [22, 38, 55] as const,
-  green: [74, 222, 128] as const,
-  teal: [45, 212, 191] as const,
-  white: [241, 245, 249] as const,
-  muted: [148, 163, 184] as const,
-  faint: [71, 85, 105] as const,
+const PDF_PALETTES = {
+  light: {
+    background: [244, 231, 212] as const,
+    surface: [255, 249, 238] as const,
+    surfaceAlt: [226, 237, 223] as const,
+    green: [239, 95, 80] as const,
+    teal: [20, 125, 120] as const,
+    white: [23, 42, 42] as const,
+    muted: [82, 107, 104] as const,
+    faint: [146, 139, 126] as const,
+  },
+  dark: {
+    background: [10, 16, 11] as const,
+    surface: [18, 28, 21] as const,
+    surfaceAlt: [27, 39, 29] as const,
+    green: [212, 168, 83] as const,
+    teal: [169, 188, 114] as const,
+    white: [242, 234, 220] as const,
+    muted: [170, 159, 142] as const,
+    faint: [91, 91, 80] as const,
+  },
 };
+
+let COLORS: (typeof PDF_PALETTES)[keyof typeof PDF_PALETTES] = PDF_PALETTES.light;
 
 const PAGE_MARGIN = 8;
 const PAGE_WIDTH = 210;
@@ -224,7 +239,8 @@ const drawSessionCard = (
 };
 
 export const buildWorkoutPlanPDF = (params: DownloadWorkoutPdfParams) => {
-  const { lang, plan, goalLabel, equipmentLabel, minutes, schedule } = params;
+  const { lang, plan, goalLabel, equipmentLabel, minutes, schedule, theme = "light" } = params;
+  COLORS = PDF_PALETTES[theme];
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   doc.setFont("Roboto", "normal");
   doc.setProperties({

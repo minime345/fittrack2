@@ -1,4 +1,6 @@
+import Image from "next/image";
 import type { Program } from "../types";
+import { workoutImageFor } from "@/lib/visual-assets";
 
 export function ProgramCard({
   program,
@@ -23,7 +25,7 @@ export function ProgramCard({
 }) {
   return (
     <article
-      className={`fit-surface fit-card-interactive relative self-start rounded-2xl border p-5 ${selected ? "border-green-400 bg-green-500/10 shadow-lg shadow-green-950/20" : isPreviewed ? "border-green-400/60" : "border-white/10"}`}
+      className={`fit-surface fit-card-interactive relative self-start overflow-hidden rounded-2xl border ${selected ? "border-green-400 bg-green-500/10 shadow-lg shadow-green-950/20" : isPreviewed ? "border-green-400/60" : "border-white/10"}`}
     >
       <button
         type="button"
@@ -31,7 +33,11 @@ export function ProgramCard({
         aria-expanded={isPreviewed}
         className="block w-full text-left"
       >
-        <span className="absolute right-4 top-4 flex items-center gap-1.5">
+        <span className="relative block h-36 overflow-hidden">
+          <Image src={workoutImageFor(program.id)} alt={program.name[lang]} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition duration-500 hover:scale-[1.03]" />
+          <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+        </span>
+        <span className="absolute right-4 top-4 z-10 flex items-center gap-1.5">
           <span className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-gray-300">
             #{rank} · {matchScore}%
           </span>
@@ -41,16 +47,16 @@ export function ProgramCard({
             </span>
           )}
         </span>
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-sm font-black text-green-300">
+        <span className="mx-5 mt-5 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-sm font-black text-green-300">
           {program.icon}
         </span>
-        <span className="mt-4 block pr-24 text-lg font-bold">
+        <span className="mx-5 mt-4 block pr-24 text-lg font-bold">
           {program.name[lang]}
         </span>
-        <span className="mt-2 block text-sm leading-relaxed text-gray-400">
+        <span className="mx-5 mt-2 block text-sm leading-relaxed text-gray-400">
           {program.summary[lang]}
         </span>
-        <span className="mt-4 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wide text-green-300">
+        <span className="mx-5 mt-4 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wide text-green-300">
           <span>
             {program.days.join("/")} {lang === "bg" ? "дни" : "days"}
           </span>
@@ -59,7 +65,7 @@ export function ProgramCard({
             {program.duration[0]}-{program.duration[1]} min
           </span>
         </span>
-        <span className="mt-4 block text-xs font-semibold text-gray-300">
+        <span className="mx-5 mb-5 mt-4 block text-xs font-semibold text-gray-300">
           {isPreviewed
             ? lang === "bg"
               ? "Скрий описанието"
@@ -71,7 +77,7 @@ export function ProgramCard({
       </button>
 
       {isPreviewed && (
-        <div className="mt-4 border-t border-white/10 pt-4">
+        <div className="border-t border-white/10 p-5">
           <p className="text-xs leading-relaxed text-gray-300">
             {lang === "bg"
               ? `Подходящо за ${program.level.bg.toLowerCase()}, ${program.days.join("/")} дни седмично и тренировки от ${program.duration[0]} до ${program.duration[1]} минути.`

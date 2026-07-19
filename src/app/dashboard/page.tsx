@@ -12,7 +12,7 @@ export default async function DashboardPage() {
 
   const [profileResult, weightsResult, planResult] = await Promise.all([
     supabase.from("profiles").select("display_name, goal, calculator_profile").maybeSingle(),
-    supabase.from("weight_entries").select("weight_kg, recorded_on").order("recorded_on", { ascending: false }).limit(5),
+    supabase.from("weight_entries").select("weight_kg, recorded_on").order("recorded_on", { ascending: false }).limit(7),
     supabase.from("saved_meal_plans").select("settings, plan_data").eq("user_id", user.id).eq("is_active", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
   const profile = profileResult.data;

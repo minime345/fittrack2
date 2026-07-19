@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, ArrowRight, Scale, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -12,6 +13,7 @@ import { useLang } from "@/context/LangContext";
 import { scaleMeal } from "@/app/personal-plan/planLogic";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
 import { SiteFooter } from "@/app/personal-plan/components/SiteFooter";
+import { mealImageFor } from "@/lib/visual-assets";
 
 export function MealDetailPage({ slug }: { slug: string }) {
   const baseMeal = meals.find((item) => item.slug === slug)! as Meal;
@@ -64,6 +66,10 @@ export function MealDetailPage({ slug }: { slug: string }) {
             </div>
           </div>
           {!baseMeal.fixedPortion && <div className="fit-surface rounded-2xl p-4"><label className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500"><Scale className="h-4 w-4 text-green-400" />{t.meals.weight}</label><div className="flex items-center gap-2"><input type="number" min="50" max={baseMeal.weight * 3} step="50" value={meal.weight} onChange={(event) => changeWeight(Number(event.target.value))} aria-label={lang === "bg" ? "Тегло на порцията" : "Portion weight"} className="w-28 rounded-xl border border-green-500/30 bg-black/20 px-3 py-2 text-center text-xl font-black text-green-300 outline-none" /><span className="font-bold text-green-300">g</span></div></div>}
+        </div>
+        <div className="fit-visual-frame relative mt-7 h-56 overflow-hidden rounded-3xl sm:h-72 lg:h-80">
+          <Image src={mealImageFor(baseMeal)} alt={detail?.name[lang] || baseMeal.name[lang]} fill priority sizes="100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         </div>
       </section>
 

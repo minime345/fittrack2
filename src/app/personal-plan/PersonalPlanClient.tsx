@@ -30,6 +30,7 @@ import { MealModal } from "./components/MealModal";
 import { PlanOverview } from "./components/PlanOverview";
 import { PlanGuide } from "./components/PlanGuide";
 import { AccountPlanPrompt } from "./components/AccountPlanPrompt";
+import { AccountPlanModal } from "./components/AccountPlanModal";
 import { WorkoutPlanPrompt } from "./components/WorkoutPlanPrompt";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -88,6 +89,7 @@ const [lang, setLang] = useState<Lang>("bg"); // default bg
 
   // ÐÐ¾Ð²Ð¸Ñ‚Ðµ ÑÑ‚ÐµÐ¹Ñ‚Ð¾Ð²Ðµ Ð·Ð° Ð¼Ð¾Ð´Ð°Ð»Ð½Ð¸Ñ Ð¿Ñ€Ð¾Ð·Ð¾Ñ€ÐµÑ†
   const [showModal, setShowModal] = useState(false);
+  const [showAccountPlanModal, setShowAccountPlanModal] = useState(false);
 
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{ dayIndex: number; mealType: PlanMealType } | null>(null);
@@ -265,7 +267,7 @@ const dietLabels: Record<Diet, string> = t.Main.diet;
   const filterMeatFromPool = (mealsList: typeof meals): typeof meals => filterByMeatType(mealsList, excludedSources);
 
 useEffect(() => {
-  if (showModal) {
+  if (showModal || showAccountPlanModal) {
     document.body.style.overflow = "hidden";
   } else {
     document.body.style.overflow = "";
@@ -274,7 +276,20 @@ useEffect(() => {
   return () => {
     document.body.style.overflow = "";
   };
-}, [showModal]);
+}, [showModal, showAccountPlanModal]);
+
+const maybeShowAccountPlanModal = async () => {
+  const promptKey = "fittrack-account-plan-prompt-v1";
+  if (sessionStorage.getItem(promptKey)) return;
+  sessionStorage.setItem(promptKey, "shown");
+
+  if (isSupabaseConfigured) {
+    const { data } = await createClient().auth.getUser();
+    if (data.user) return;
+  }
+  setShowAccountPlanModal(true);
+};
+
 const regeneratePlan = () => {
   const dailyCalories = getTargetCalories(goal, baseCalories);
 
@@ -290,6 +305,7 @@ const regeneratePlan = () => {
   setWeeklyPlan(weekPlan);
   setSwapHistory({});
   setGeneratedSettings({ baseCalories, goal, diet, excludedSources: [...excludedSources], planStyle });
+  void maybeShowAccountPlanModal();
 };
 
 useEffect(() => {
@@ -399,6 +415,7 @@ const handleDownloadPDF = () => {
     diet: generatedSettings?.diet ?? diet,
     dietLabels,
     lang,
+    theme: document.documentElement.classList.contains("theme-dark") ? "dark" : "light",
   });
 };
 
@@ -611,6 +628,7 @@ const changeMealWeight = (weight: number) => {
 {/* Footer */}
       <SiteFooter t={t} currentYear={currentYear} />
       <MealModal t={t} lang={lang} showModal={showModal} selectedMeal={selectedMeal} setShowModal={setShowModal} onWeightChange={changeMealWeight} />
+      <AccountPlanModal lang={lang} open={showAccountPlanModal} onClose={() => setShowAccountPlanModal(false)} />
  
       <Analytics />
     </main>

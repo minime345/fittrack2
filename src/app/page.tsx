@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -115,7 +116,8 @@ export default function Home() {
       <HeaderNav t={t} lang={lang} toggleLang={toggleLang} isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <section className="fit-page-hero">
-        <div className="max-w-4xl">
+        <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+          <div>
             <p className="fit-eyebrow">{c.eyebrow}</p>
             <h1 className="fit-title-gradient mt-4 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">{c.title}</h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-300 sm:text-lg">{c.intro}</p>
@@ -127,6 +129,18 @@ export default function Home() {
                 <Calculator className="h-4 w-4" />{c.secondary}
               </Link>
             </div>
+          </div>
+          <div className="fit-visual-frame relative min-h-[300px] overflow-hidden rounded-[2rem] sm:min-h-[390px] lg:min-h-[470px]">
+            <Image
+              src="/homepage-fitness.jpg"
+              alt={lang === "bg" ? "Тренировка в светло и приветливо студио" : "Training in a bright, welcoming studio"}
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          </div>
         </div>
       </section>
 
@@ -177,12 +191,18 @@ export default function Home() {
               <p className="mt-4 text-sm leading-relaxed text-gray-300">{c.plannerText}</p>
               <Link href="/personal-plan" className="fit-primary-button mt-6 inline-flex items-center gap-2 px-5 py-3 text-sm font-bold">{c.primary}<ArrowRight className="h-4 w-4" /></Link>
             </div>
-            <div className="grid gap-px bg-white/5 sm:grid-cols-2">
-              {c.plannerPoints.map((point, index) => {
-                const icons = [UtensilsCrossed, RefreshCw, Sparkles, Check, ShoppingBasket, FileDown];
-                const Icon = icons[index];
-                return <div key={point} className="bg-gray-900/90 p-5"><Icon className="h-5 w-5 text-green-400" /><p className="mt-3 text-sm font-semibold text-gray-200">{point}</p></div>;
-              })}
+            <div>
+              <div className="relative h-48 overflow-hidden border-b border-white/10 sm:h-56">
+                <Image src="/brand/meal-planning.webp" alt="" fill sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+              </div>
+              <div className="grid gap-px bg-white/5 sm:grid-cols-2">
+                {c.plannerPoints.map((point, index) => {
+                  const icons = [UtensilsCrossed, RefreshCw, Sparkles, Check, ShoppingBasket, FileDown];
+                  const Icon = icons[index];
+                  return <div key={point} className="bg-gray-900/90 p-5"><Icon className="h-5 w-5 text-green-400" /><p className="mt-3 text-sm font-semibold text-gray-200">{point}</p></div>;
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -196,12 +216,12 @@ export default function Home() {
         </div>
         <div className="mt-7 grid gap-4 md:grid-cols-3">
           {[
-            [UtensilsCrossed, t.nav.meals, "/meals"],
-            [BookOpen, t.nav.plans, "/plans"],
-            [Dumbbell, t.nav.workouts, "/workouts"],
-          ].map(([Icon, label, href]) => {
+            [UtensilsCrossed, t.nav.meals, "/meals", "/brand/meals-hero.webp"],
+            [BookOpen, t.nav.plans, "/plans", "/diets/mediterranean.jpeg"],
+            [Dumbbell, t.nav.workouts, "/workouts", "/brand/workouts/strength-squat.webp"],
+          ].map(([Icon, label, href, image]) => {
             const CardIcon = Icon as typeof Dumbbell;
-            return <Link key={href as string} href={href as string} className="fit-surface fit-card-interactive flex items-center justify-between rounded-2xl p-5"><span className="flex items-center gap-3 font-bold"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10 text-green-300"><CardIcon className="h-5 w-5" /></span>{label as string}</span><ArrowRight className="h-4 w-4 text-green-400" /></Link>;
+            return <Link key={href as string} href={href as string} className="fit-surface fit-card-interactive group overflow-hidden rounded-2xl"><span className="relative block h-32 overflow-hidden"><Image src={image as string} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" /><span className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" /></span><span className="flex items-center justify-between p-5"><span className="flex items-center gap-3 font-bold"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10 text-green-300"><CardIcon className="h-5 w-5" /></span>{label as string}</span><ArrowRight className="h-4 w-4 text-green-400" /></span></Link>;
           })}
         </div>
       </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
@@ -145,6 +146,10 @@ export default function WorkoutsPage() {
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
                 {lang === "bg" ? "Адаптивни упражнения" : "Adaptive exercises"}
               </span>
+            </div>
+            <div className="fit-visual-frame relative mt-6 h-48 overflow-hidden rounded-3xl sm:h-56">
+              <Image src="/brand/workouts/pexels-gym-equipment.webp" alt="" fill priority sizes="(max-width: 1024px) 100vw, 45vw" className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
             </div>
           </div>
 

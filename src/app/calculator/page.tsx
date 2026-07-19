@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { translations, type Lang } from "@/lib/translations";
 import { Analytics } from "@vercel/analytics/react";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
@@ -224,6 +225,10 @@ export default function Calculator() {
         </div>
         <div className="fit-surface bg-gray-900/90 rounded-3xl shadow-2xl backdrop-blur-md border border-green-500/20 p-4 sm:p-7">
           <h1 className="fit-title-gradient text-2xl sm:text-4xl font-extrabold mb-5 text-center">{t.calculator.title}</h1>
+          <div className="fit-visual-frame relative mb-6 h-28 overflow-hidden rounded-2xl sm:h-36">
+            <Image src="/brand/progress-tracking.webp" alt="" fill priority sizes="(max-width: 1024px) 100vw, 900px" className="object-cover object-center" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-transparent to-black/10" />
+          </div>
 
           <form
             onSubmit={(e) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { HeaderNav } from "@/app/personal-plan/components/HeaderNav";
@@ -12,6 +13,7 @@ import { ScheduleGrid } from "../components/ScheduleGrid";
 import { Stat } from "../components/Stat";
 import { downloadWorkoutPlanPDF } from "../pdfExport";
 import { useTrainingPreferences } from "../useTrainingPreferences";
+import { workoutImageFor } from "@/lib/visual-assets";
 
 export function PlanDetailClient({ id }: { id: string }) {
   const {
@@ -64,6 +66,7 @@ export function PlanDetailClient({ id }: { id: string }) {
       equipment: prefs.equipment,
       minutes: prefs.minutes,
       exerciseLimit,
+      theme: document.documentElement.classList.contains("theme-dark") ? "dark" : "light",
     });
   };
 
@@ -88,6 +91,10 @@ export function PlanDetailClient({ id }: { id: string }) {
 
       <section className="fit-page-section py-6">
         <div className="fit-surface overflow-hidden rounded-3xl border border-green-500/20">
+          <div className="relative h-52 sm:h-64 lg:h-72">
+            <Image src={workoutImageFor(plan.id)} alt={plan.name[lang]} fill priority sizes="100vw" className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+          </div>
           <div className="border-b border-white/10 p-5 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
